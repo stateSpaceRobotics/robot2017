@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<launch>
+
+	<!-- Launches aruco node -->
+	<include file="$(find classic_robot)/launch/aruco.launch" />
+
+		<!-- aruco parameters, mostly dummy values currently -->
+		<arg name="rear_camera" default="/rear_kinect" />
+		<arg name="marker_size" default="0.5" />
+		<arg name="board" default="board.yml" />
+		<arg name="board_frame" default="/board" />
+		
+	</include>
+
+</launch>
