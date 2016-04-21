@@ -79,7 +79,7 @@ class BeaconLocalizer(object):
         '''
         Lidar Processor constructor
         '''
-        rospy.init_node("beacon_localizer")
+        rospy.init_node("lidar_beacon_detector")
 
         self.listener = tf.TransformListener()
 
