@@ -2,15 +2,18 @@
 
 import rospy
 
-from geometry_msgs.msg import PoseStamped, Twist
+from geometry_msgs.msg import PoseStamped, Twist, Pose
 from sensor_msgs.msg import Joy
-from std_msgs.msg       import Float64, Bool
+from std_msgs.msg import Float64, Bool
+from nav_msgs.msg import Path
 
 
 CUR_ARM_ANGLE_TOPIC = rospy.get_param("topics/cur_arm_angle", "current_arm_angle")
 DES_ARM_ANGLE_TOPIC = rospy.get_param("topics/des_arm_angle", "desired_arm_angle")
 HAND_STATE_TOPIC = rospy.get_param("topics/hand_state", "hand_state")
 TWIST_TOPIC = rospy.get_param("topics/drive_cmds", "cmd_vel")
+POSE_TOPIC = rospy.get_param("topics/particleFilter_pose_out", "/particle_filter/pose_out")
+PATH_TOPIC = rospy.get_param("topics/path", "/obstacle_path")
 JOY_TOPIC = rospy.get_param("topics/joystick", "joy")
 LEFT_DRIVE_AXIS = rospy.get_param("joy/left_drive", 1)
 RIGHT_DRIVE_AXIS = rospy.get_param("joy/right_drive", 4)
@@ -23,6 +26,10 @@ WHEEL_RADIUS = rospy.get_param("wheel_radius", 0.25)
 ARM_ANGLE_UP = rospy.get_param("arm_up_angle", 100)
 ARM_ANGLE_DOWN = rospy.get_param("arm_down_angle", 10)
 
+Y_IN_DUMP_RANGE = 0.1
+Y_IN_MINING_AREA = 4.5 #10 cm past edge of mining area
+Y_IN_DOCKING_AREA = 1.5
+
 
 class high_level_state_controller(object):
     def __init__(self):
@@ -33,11 +40,15 @@ class high_level_state_controller(object):
         self.hand_pub = rospy.Publisher(HAND_STATE_TOPIC, Bool, queue_size=10)
         self.handState = False
 
+        rospy.Subscriber(POSE_TOPIC, PoseStamped, self.pose_sub)
+        self.pose = PoseStamped()
         rospy.Subscriber(CUR_ARM_ANGLE_TOPIC, Float64, self.arm_sub)
         self.arm_cur_angle = 45.0
+        rospy.Subscriber(PATH_TOPIC, Path, self.path_sub)
+        self.pathPoses = []
         rospy.Subscriber(JOY_TOPIC, Joy, self.joy_sub)
         self.autoState = "INIT"
-        self.highState = "TELE"#"AUTO"
+        self.highState = "AUTO"
         self.lastJoy = None
         self.leftDrive = None
         self.rightDrive = None
@@ -57,6 +68,12 @@ class high_level_state_controller(object):
 
     def arm_sub(self, data):
         self.arm_cur_angle = data
+
+    def pose_sub(self, data):
+        self.pose = data.pose
+
+    def path_sub(self, data):
+        self.pathPoses = data.poses
 
     def linAngVelFromSkidSteer(self, left, right):
         x = (right+left)*WHEEL_RADIUS/2
@@ -86,14 +103,25 @@ class high_level_state_controller(object):
             #in autonomous mode
             if(self.highState == "AUTO"):
                 #Act on the autoState
-                pass
+                if(self.autostate == "INIT"):
+                    pass
+                elif(self.autostate == "F_OBSTACLE_FIELD"):
+                    pass
+                elif(self.autostate == "MINING_BEHAVIOR")
+                    mining_complete = True
+                elif(self.autostate == "B_OBSTACLE_FIELD"):
+                    pass
+                elif(self.autostate == "DOCKING"):
+                    pass
+                elif(self.autostate == "DUMPING"):
+                    dumping_complete = True
 
             elif(self.highState == "TELE"):
                 if(self.lastJoy is not None):
                     cmd_vel = Twist()
                     left = self.cleanLeftJoy(self.leftDrive)
                     right = self.cleanRightJoy(self.rightDrive)
-                    cmd_vel.linear.x, cmd_vel.angular.z = self.linAngVelFromSkidSteer(left, right)
+                    cmd_vel.linear.x, cmd_vel.angular.z = self.linAngVelFromSkidSteer(left, right)#TODO: might need to rescale
                     self.drive_pub.publish(cmd_vel)
 
                     armCommand = self.combineCleanArm(self.armDown, self.armUp)
@@ -109,7 +137,29 @@ class high_level_state_controller(object):
                     self.hand_pub.publish(self.handState)
 
             #advance the autostate
-            
+            if(self.autostate == "INIT"):
+                if(True):#change to some actual check
+                    self.autostate = "F_OBSTACLE_FIELD"
+            elif(self.autostate == "F_OBSTACLE_FIELD"):
+                if(self.pose.position.y >= Y_IN_MINING_AREA):
+                    self.autostate = "MINING_BEHAVIOR"
+            elif(self.autostate == "MINING_BEHAVIOR")
+                if(mining_complete or (self.pose.position.y < Y_IN_MINING_AREA - .3)): #the or part is incase we merge teleop and autonomy
+                    self.autostate = "B_OBSTACLE_FIELD"
+            elif(self.autostate == "B_OBSTACLE_FIELD"):
+                if(self.pose.position.y <= Y_IN_DOCKING_AREA):
+                    self.autostate = "DOCKING"
+            elif(self.autostate == "DOCKING"):
+                if(self.pose.position.y < Y_IN_DUMP_RANGE):
+                    self.autostate = "DUMPING"
+            elif(self.autostate == "DUMPING"):
+                if(dumping_complete or (self.pose.position.y >= Y_IN_DUMP_RANGE+0.5)):
+                    self.autostate = "F_OBSTACLE_FIELD"
+            else:
+                self.autostate = "INIT"
+
+
+
                 
             rate.sleep()
 
