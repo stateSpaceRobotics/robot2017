@@ -14,6 +14,7 @@ HAND_STATE_TOPIC = rospy.get_param("topics/hand_state", "hand_state")
 TWIST_TOPIC = rospy.get_param("topics/drive_cmds", "cmd_vel")
 POSE_TOPIC = rospy.get_param("topics/particleFilter_pose_out", "/particle_filter/pose_out")
 PATH_TOPIC = rospy.get_param("topics/path", "/obstacle_path")
+GOAL_TOPIC = rospy.get_param("topics/navigation_goals", "nav_goal")
 JOY_TOPIC = rospy.get_param("topics/joystick", "joy")
 LEFT_DRIVE_AXIS = rospy.get_param("joy/left_drive", 1)
 RIGHT_DRIVE_AXIS = rospy.get_param("joy/right_drive", 4)
@@ -26,9 +27,16 @@ WHEEL_RADIUS = rospy.get_param("wheel_radius", 0.25)
 ARM_ANGLE_UP = rospy.get_param("arm_up_angle", 100)
 ARM_ANGLE_DOWN = rospy.get_param("arm_down_angle", 10)
 
-Y_IN_DUMP_RANGE = 0.1
+Y_IN_DUMP_RANGE = 0.01
 Y_IN_MINING_AREA = 4.5 #10 cm past edge of mining area
 Y_IN_DOCKING_AREA = 1.5
+
+TIME_DUMP_SEC = 10
+
+X_POS_DUMP = 0
+Y_POS_DUMP = 0
+
+IS_CLOSE_DIST = 0.4
 
 
 class high_level_state_controller(object):
@@ -39,6 +47,7 @@ class high_level_state_controller(object):
         self.arm_pub = rospy.Publisher(DES_ARM_ANGLE_TOPIC, Float64, queue_size=10)
         self.hand_pub = rospy.Publisher(HAND_STATE_TOPIC, Bool, queue_size=10)
         self.handState = False
+        self.goal_pub = rospy.Publisher(GOAL_TOPIC, PoseStamped, queue_size=10)
 
         rospy.Subscriber(POSE_TOPIC, PoseStamped, self.pose_sub)
         self.pose = PoseStamped()
@@ -46,6 +55,7 @@ class high_level_state_controller(object):
         self.arm_cur_angle = 45.0
         rospy.Subscriber(PATH_TOPIC, Path, self.path_sub)
         self.pathPoses = []
+        self.curPathIndex = 0
         rospy.Subscriber(JOY_TOPIC, Joy, self.joy_sub)
         self.autoState = "INIT"
         self.highState = "AUTO"
@@ -56,6 +66,8 @@ class high_level_state_controller(object):
         self.armUp = None
         self.handDown = None
         self.handUp = None
+
+        self.dumpTimer = None
 
     def joy_sub(self, data):
         self.lastJoy = data.header.stamp
@@ -96,6 +108,13 @@ class high_level_state_controller(object):
             handState = False
         return handState
 
+    def closeTo(self, poseChecked):
+        x_dist = abs(self.pose.position.x - poseChecked.pose.position.x)
+        y_dist = abs(self.pose.position.y - poseChecked.pose.position.y)
+        euclid_dist = x_dist + y_dist
+
+        return (euclid_dist < IS_CLOSE_DIST)
+
     def run(self):
         rate = rospy.Rate(10)
 
@@ -106,15 +125,46 @@ class high_level_state_controller(object):
                 if(self.autostate == "INIT"):
                     pass
                 elif(self.autostate == "F_OBSTACLE_FIELD"):
-                    pass
-                elif(self.autostate == "MINING_BEHAVIOR")
+                    if(self.closeTo(self.pathPoses[self.curPathIndex])):
+                        self.curPathIndex += 1
+                        if(self.curPathIndex >= len(self.pathPoses)):
+                            self.curPathIndex = len(self.pathPoses) - 1
+                    self.goal_pub.publish(self.pathPoses[self.curPathIndex])
+                elif(self.autostate == "MINING_BEHAVIOR"):
+                    #first put down the hand completely
+                    #If the arm is at a certain angle in the F_OBSTACLE_FIELD state, we could put the hand down, 
+                    #   then have the arm go down, so it can use the arm angle to tell when the hand is ready
+
+                    #keep a counter of the number of the times it has already mined, can create path based on angle
+                    #   pulled from an array based on iteration, make sure to reset the mining path to None when leaving this state
+
+                    #once the end of the path has been reached, close the hand and iterate back across path
+
+                    #once the beginning has been reached again
                     mining_complete = True
                 elif(self.autostate == "B_OBSTACLE_FIELD"):
-                    pass
+                    if(self.closeTo(self.pathPoses[self.curPathIndex])):
+                        self.curPathIndex -= 1
+                        if(self.curPathIndex < 0 ):
+                            self.curPathIndex = 0
+                    self.goal_pub.publish(self.pathPoses[self.curPathIndex])
                 elif(self.autostate == "DOCKING"):
-                    pass
+                    dockPose = PoseStamped()
+                    dockPose.pose.position.x = X_POS_DUMP
+                    dockPose.pose.position.y = Y_POS_DUMP
+                    self.goal_pub.publish(dockPose)
                 elif(self.autostate == "DUMPING"):
-                    dumping_complete = True
+                    if(self.arm_cur_angle >= ARM_ANGLE_UP):
+                        if(self.dumpTimer == None):
+                            self.dumpTimer = rospy.Time.now() + rospy.Duration(TIME_DUMP_SEC)
+                        elif(self.dumpTimer >= rospy.Time.now() ):
+                            dumping_complete = True
+                            self.arm_pub(ARM_ANGLE_DOWN) #TODO: possibly change to a middle value
+                        else:
+                            #possibly do shaking stuff
+                            pass
+                    else:
+                        self.arm_pub(ARM_ANGLE_UP)
 
             elif(self.highState == "TELE"):
                 if(self.lastJoy is not None):
@@ -155,9 +205,9 @@ class high_level_state_controller(object):
             elif(self.autostate == "DUMPING"):
                 if(dumping_complete or (self.pose.position.y >= Y_IN_DUMP_RANGE+0.5)):
                     self.autostate = "F_OBSTACLE_FIELD"
+                    self.dumpTimer = None
             else:
                 self.autostate = "INIT"
-
 
 
                 
