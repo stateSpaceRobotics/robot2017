@@ -22,7 +22,7 @@ GOAL_THRESH         = 0.1       # radius around goal that it's okay to stop in
 ######################################
 DRIVE_TOPIC = rospy.get_param("topics/drive_cmds", "cmd_vel")
 GOAL_TOPIC = rospy.get_param("topics/navigation_goals", "nav_goal")
-ROBOPOSE_TOPIC = rospy.get_param("topics/localization_pose", "localization_pose")
+ROBOPOSE_TOPIC = rospy.get_param("topics/particleFilter_pose_out", "beacon_localization_pose")
 BEACON_LOST_TOPIC = rospy.get_param("topics/beacon_lost", "beacon_lost")
 REACHED_GOAL_TOPIC = rospy.get_param("topics/reached_goal", "reached_goal")
 OBSTACLES_TOPIC = rospy.get_param("topics/obstacles","/obstacle_centroids")
@@ -52,7 +52,7 @@ class PFieldNavigator(object):
         # Setup ROS subscibers
         ######################################
         rospy.Subscriber(ROBOPOSE_TOPIC, PoseStamped, self.robot_pose_callback)
-        rospy.Subscriber(GOAL_TOPIC, Point, self.nav_goal_callback)
+        rospy.Subscriber(GOAL_TOPIC, PoseStamped, self.nav_goal_callback)
         rospy.Subscriber(BEACON_LOST_TOPIC, Bool, self.beacon_lost_callback)
         rospy.Subscriber(OBSTACLES_TOPIC, PointCloud, self.obstacle_callback)
 
@@ -60,8 +60,8 @@ class PFieldNavigator(object):
         '''
         Callback for navigation goals.
         '''
-        print("Received nav goal: " + str(data))
-        self.current_goal = data
+        #print("Received nav goal: " + str(data))
+        self.current_goal = data.pose.position
 
     def beacon_lost_callback(self, data):
         '''
@@ -134,7 +134,7 @@ class PFieldNavigator(object):
                 attr_force = self.calc_goal_force(nav_goal, robot_pose)
                 print("Goal force: " + str(attr_force))
                 # Calculate repulsive force
-                repulsive_force = self.calc_repulsive_force(self.centroid_obstacles, robot_pose)
+                #repulsive_force = self.calc_repulsive_force(self.centroid_obstacles, robot_pose)
                 # Get final drive vector (goal, obstacle forces)
                 # Calculate twist message from drive vector
                 drive_cmd = self.drive_from_force(attr_force, robot_pose)

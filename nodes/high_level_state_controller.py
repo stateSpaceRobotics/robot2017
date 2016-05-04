@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import rospy
+import rospy, math
 
 from geometry_msgs.msg import PoseStamped, Twist, Pose
 from sensor_msgs.msg import Joy
@@ -12,7 +12,7 @@ CUR_ARM_ANGLE_TOPIC = rospy.get_param("topics/cur_arm_angle", "current_arm_angle
 DES_ARM_ANGLE_TOPIC = rospy.get_param("topics/des_arm_angle", "desired_arm_angle")
 HAND_STATE_TOPIC = rospy.get_param("topics/hand_state", "hand_state")
 TWIST_TOPIC = rospy.get_param("topics/drive_cmds", "cmd_vel")
-POSE_TOPIC = rospy.get_param("topics/particleFilter_pose_out", "/particle_filter/pose_out")
+POSE_TOPIC = rospy.get_param("topics/particleFilter_pose_out", "beacon_localization_pose")#"/particle_filter/pose_out")
 PATH_TOPIC = rospy.get_param("topics/path", "/obstacle_path")
 GOAL_TOPIC = rospy.get_param("topics/navigation_goals", "nav_goal")
 JOY_TOPIC = rospy.get_param("topics/joystick", "joy")
@@ -22,10 +22,12 @@ ARM_DOWN_AXIS = rospy.get_param("joy/arm_down", 2)
 ARM_UP_AXIS = rospy.get_param("joy/arm_up", 5)
 HAND_DOWN_BUTTON = rospy.get_param("joy/hand_down", 4)
 HAND_UP_BUTTON = rospy.get_param("joy/hand_up", 5)
+TELEOP_BUTTON = rospy.get_param("joy/teleop", 8)
 WHEEL_SEPARATION = rospy.get_param("wheel_separation", 1)
 WHEEL_RADIUS = rospy.get_param("wheel_radius", 0.25)
 ARM_ANGLE_UP = rospy.get_param("arm_up_angle", 100)
 ARM_ANGLE_DOWN = rospy.get_param("arm_down_angle", 10)
+MINING_DISTANCE = rospy.get_param("distance_to_mine", 1.5)
 
 Y_IN_DUMP_RANGE = 0.01
 Y_IN_MINING_AREA = 4.5 #10 cm past edge of mining area
@@ -37,6 +39,7 @@ X_POS_DUMP = 0
 Y_POS_DUMP = 0
 
 IS_CLOSE_DIST = 0.4
+ANGLES_TO_MINE = [0, 30, -30, 60, -60]
 
 
 class high_level_state_controller(object):
@@ -50,14 +53,14 @@ class high_level_state_controller(object):
         self.goal_pub = rospy.Publisher(GOAL_TOPIC, PoseStamped, queue_size=10)
 
         rospy.Subscriber(POSE_TOPIC, PoseStamped, self.pose_sub)
-        self.pose = PoseStamped()
+        self.pose = Pose()
         rospy.Subscriber(CUR_ARM_ANGLE_TOPIC, Float64, self.arm_sub)
         self.arm_cur_angle = 45.0
         rospy.Subscriber(PATH_TOPIC, Path, self.path_sub)
         self.pathPoses = []
         self.curPathIndex = 0
         rospy.Subscriber(JOY_TOPIC, Joy, self.joy_sub)
-        self.autoState = "INIT"
+        self.autostate = "INIT"
         self.highState = "AUTO"
         self.lastJoy = None
         self.leftDrive = None
@@ -66,7 +69,13 @@ class high_level_state_controller(object):
         self.armUp = None
         self.handDown = None
         self.handUp = None
+        self.teleopButton_prev = 0
 
+        self.miningAngleIndex = 0
+        self.miningPathIndex = 0
+        self.miningReady = False
+        self.miningDone = False
+        self.minePath = None
         self.dumpTimer = None
 
     def joy_sub(self, data):
@@ -77,6 +86,16 @@ class high_level_state_controller(object):
         self.armUp = data.axes[ARM_UP_AXIS]
         self.handDown = data.buttons[HAND_DOWN_BUTTON]
         self.handUp = data.buttons[HAND_UP_BUTTON]
+        if(data.buttons[TELEOP_BUTTON] == 1):
+            if(self.teleopButton_prev == 0):
+                if(self.highState != "TELE"):
+                    self.highState = "TELE"
+                else:
+                    self.highState = "AUTO"
+
+        self.teleopButton_prev = data.buttons[TELEOP_BUTTON]
+
+
 
     def arm_sub(self, data):
         self.arm_cur_angle = data
@@ -108,11 +127,34 @@ class high_level_state_controller(object):
             handState = False
         return handState
 
-    def closeTo(self, poseChecked):
-        x_dist = abs(self.pose.position.x - poseChecked.pose.position.x)
-        y_dist = abs(self.pose.position.y - poseChecked.pose.position.y)
-        euclid_dist = x_dist + y_dist
+    def calcMiningPath(self, angle):
+        start_x = self.pose.position.x
+        start_y = self.pose.position.y
 
+        angle_rads = math.radians(angle)
+
+        end_x = start_x + ( MINING_DISTANCE * math.sin(angle_rads))
+        end_y = start_y + ( MINING_DISTANCE * math.cos(angle_rads))
+
+        path = []
+        endPose = PoseStamped()
+        endPose.pose.position.x = end_x
+        endPose.pose.position.y = end_y
+
+        path.append(self.pose)
+        path.append(endPose)
+        return path
+
+    def closeTo(self, poseChecked):
+        try:
+            x_dist = abs(self.pose.position.x - poseChecked.position.x)
+            y_dist = abs(self.pose.position.y - poseChecked.position.y)
+        except AttributeError:
+            x_dist = abs(self.pose.position.x - poseChecked.pose.position.x)
+            y_dist = abs(self.pose.position.y - poseChecked.pose.position.y)
+
+        euclid_dist = x_dist + y_dist
+        print("In closeTo")
         return (euclid_dist < IS_CLOSE_DIST)
 
     def run(self):
@@ -125,20 +167,48 @@ class high_level_state_controller(object):
                 if(self.autostate == "INIT"):
                     pass
                 elif(self.autostate == "F_OBSTACLE_FIELD"):
-                    if(self.closeTo(self.pathPoses[self.curPathIndex])):
-                        self.curPathIndex += 1
-                        if(self.curPathIndex >= len(self.pathPoses)):
-                            self.curPathIndex = len(self.pathPoses) - 1
-                    self.goal_pub.publish(self.pathPoses[self.curPathIndex])
+                    if(len(self.pathPoses) != 0):
+                        if(self.closeTo(self.pathPoses[self.curPathIndex])):
+                            self.curPathIndex += 1
+                            if(self.curPathIndex >= len(self.pathPoses)):
+                                self.curPathIndex = len(self.pathPoses) - 1
+                        self.goal_pub.publish(self.pathPoses[self.curPathIndex])
                 elif(self.autostate == "MINING_BEHAVIOR"):
                     #first put down the hand completely
                     #If the arm is at a certain angle in the F_OBSTACLE_FIELD state, we could put the hand down, 
                     #   then have the arm go down, so it can use the arm angle to tell when the hand is ready
+                    if not self.miningReady:
+                        self.miningReady = True
+                        self.handState = True
+                        self.hand_pub.publish(self.handState)
 
                     #keep a counter of the number of the times it has already mined, can create path based on angle
                     #   pulled from an array based on iteration, make sure to reset the mining path to None when leaving this state
+                    if(self.miningReady and not self.miningDone ):
+                        if(self.minePath == None):
+                            self.minePath = self.calcMiningPath(ANGLES_TO_MINE[self.miningAngleIndex])
+                            self.miningAngleIndex += 1
+                            if(self.miningAngleIndex >= len(ANGLES_TO_MINE)):
+                                self.miningAngleIndex = 0
+
+                        if(self.closeTo(self.minePath[self.miningPathIndex])):
+                            self.miningPathIndex += 1
+                            if (self.miningPathIndex >= len(self.minePath)):
+                                self.minePath = len(self.minePath) - 1
+                        self.goal_pub.publish(self.minePath[self.miningPathIndex])
+
+                        if(self.closeTo(self.minePath[len(self.minePath) - 1])):
+                            self.miningDone = True
 
                     #once the end of the path has been reached, close the hand and iterate back across path
+                    elif self.miningDone:
+                        self.handState = False
+                        self.hand_pub(self.handState)
+                        if (self.closeTo(self.minePath[self.miningPathIndex])):
+                            self.miningPathIndex -= 1
+                            if (self.miningPathIndex < 0):
+                                self.minePath = 0
+                        self.goal_pub(self.minePath[self.miningPathIndex])
 
                     #once the beginning has been reached again
                     mining_complete = True
@@ -193,9 +263,10 @@ class high_level_state_controller(object):
             elif(self.autostate == "F_OBSTACLE_FIELD"):
                 if(self.pose.position.y >= Y_IN_MINING_AREA):
                     self.autostate = "MINING_BEHAVIOR"
-            elif(self.autostate == "MINING_BEHAVIOR")
+            elif(self.autostate == "MINING_BEHAVIOR"):
                 if(mining_complete or (self.pose.position.y < Y_IN_MINING_AREA - .3)): #the or part is incase we merge teleop and autonomy
                     self.autostate = "B_OBSTACLE_FIELD"
+                    self.minePath = None
             elif(self.autostate == "B_OBSTACLE_FIELD"):
                 if(self.pose.position.y <= Y_IN_DOCKING_AREA):
                     self.autostate = "DOCKING"
@@ -210,7 +281,7 @@ class high_level_state_controller(object):
                 self.autostate = "INIT"
 
 
-                
+            # print(self.autostate)
             rate.sleep()
 
 
