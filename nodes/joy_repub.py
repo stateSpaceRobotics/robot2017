@@ -3,7 +3,7 @@
 import rospy
 
 from sensor_msgs.msg import Joy
-from gray_transceiver.msg import GxRequest
+from gray_transceiver.msg import GxRequest, GxMetaTopic
 
 class joy_repubber(object):
     def __init__(self):
