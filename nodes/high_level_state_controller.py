@@ -12,10 +12,12 @@ CUR_ARM_ANGLE_TOPIC = rospy.get_param("topics/cur_arm_angle", "current_arm_angle
 DES_ARM_ANGLE_TOPIC = rospy.get_param("topics/des_arm_angle", "desired_arm_angle")
 HAND_STATE_TOPIC = rospy.get_param("topics/hand_state", "hand_state")
 TWIST_TOPIC = rospy.get_param("topics/drive_cmds", "cmd_vel")
+DRIVE_PFIELD_TOPIC = rospy.get_param("topics/drive_cmds_pfield", "cmd_vel_pfield")
 POSE_TOPIC = rospy.get_param("topics/particleFilter_pose_out", "beacon_localization_pose")#"/particle_filter/pose_out")
 PATH_TOPIC = rospy.get_param("topics/path", "/obstacle_path")
 GOAL_TOPIC = rospy.get_param("topics/navigation_goals", "nav_goal")
 JOY_TOPIC = rospy.get_param("topics/joystick", "joy")
+JOY_OUT_TOPIC = rospy.get_param("topics/joystick_mbed", "joy_mbed")
 LEFT_DRIVE_AXIS = rospy.get_param("joy/left_drive", 1)
 RIGHT_DRIVE_AXIS = rospy.get_param("joy/right_drive", 4)
 ARM_DOWN_AXIS = rospy.get_param("joy/arm_down", 2)
@@ -51,7 +53,10 @@ class high_level_state_controller(object):
         self.hand_pub = rospy.Publisher(HAND_STATE_TOPIC, Bool, queue_size=10)
         self.handState = False
         self.goal_pub = rospy.Publisher(GOAL_TOPIC, PoseStamped, queue_size=10)
+        self.joy_pub = rospy.Publisher(JOY_OUT_TOPIC, Joy, queue_size=10)
 
+        rospy.Subscriber(DRIVE_PFIELD_TOPIC, Twist, self.pfield_sub)
+        self.autoJoy = Joy()
         rospy.Subscriber(POSE_TOPIC, PoseStamped, self.pose_sub)
         self.pose = Pose()
         rospy.Subscriber(CUR_ARM_ANGLE_TOPIC, Float64, self.arm_sub)
@@ -95,6 +100,20 @@ class high_level_state_controller(object):
 
         self.teleopButton_prev = data.buttons[TELEOP_BUTTON]
 
+        if(self.highState == "TELE"):
+            self.joy_pub.publish(data)
+
+    def pfield_sub(self, data):
+        x = data.linear.x
+        z = data.angular.z
+        left = (x - z * wheel_separation / 2) / wheel_radius
+        right = (x + z * wheel_separation / 2) * wheel_radius
+
+        self.autoJoy.axes[LEFT_DRIVE_AXIS] = left
+        self.autoJoy.axes[RIGHT_DRIVE_AXIS] = right
+
+        if(self.highState == "AUTO"):
+            self.joy_pub.publish(self.autoJoy)
 
 
     def arm_sub(self, data):
@@ -126,6 +145,26 @@ class high_level_state_controller(object):
         elif(handDown and not handUp):
             handState = False
         return handState
+
+    def setHandButton(self):
+        if(self.handState):
+            self.autoJoy.buttons[HAND_DOWN_BUTTON] = True
+            self.autoJoy.buttons[HAND_UP_BUTTON] = False
+        else:
+            self.autoJoy.buttons[HAND_DOWN_BUTTON] = False
+            self.autoJoy.buttons[HAND_UP_BUTTON] = True
+
+    def armDownJoy(self):
+        self.autoJoy.axes[ARM_DOWN_AXIS] = 1
+        self.autoJoy.axes[ARM_UP_AXIS] = -1
+
+    def armUpJoy(self):
+        self.autoJoy.axes[ARM_DOWN_AXIS] = -1
+        self.autoJoy.axes[ARM_UP_AXIS] = 1
+
+    def armStableJoy(self):
+        self.autoJoy.axes[ARM_DOWN_AXIS] = -1
+        self.autoJoy.axes[ARM_UP_AXIS] = -1
 
     def calcMiningPath(self, angle):
         start_x = self.pose.position.x
@@ -181,6 +220,7 @@ class high_level_state_controller(object):
                         self.miningReady = True
                         self.handState = True
                         self.hand_pub.publish(self.handState)
+                        self.setHandButton()
 
                     #keep a counter of the number of the times it has already mined, can create path based on angle
                     #   pulled from an array based on iteration, make sure to reset the mining path to None when leaving this state
@@ -229,12 +269,14 @@ class high_level_state_controller(object):
                             self.dumpTimer = rospy.Time.now() + rospy.Duration(TIME_DUMP_SEC)
                         elif(self.dumpTimer >= rospy.Time.now() ):
                             dumping_complete = True
-                            self.arm_pub(ARM_ANGLE_DOWN) #TODO: possibly change to a middle value
+                            self.arm_pub.publish(ARM_ANGLE_DOWN) #TODO: possibly change to a middle value
+                            self.armDownJoy()
                         else:
                             #possibly do shaking stuff
                             pass
                     else:
-                        self.arm_pub(ARM_ANGLE_UP)
+                        self.arm_pub.publish(ARM_ANGLE_UP)
+                        self.armUpJoy()
 
             elif(self.highState == "TELE"):
                 if(self.lastJoy is not None):
@@ -248,10 +290,13 @@ class high_level_state_controller(object):
                     ArmMoveAmount = (ARM_ANGLE_UP - ARM_ANGLE_DOWN)/10
                     if(armCommand > .1):
                         self.arm_pub.publish(self.arm_cur_angle+ArmMoveAmount)
+                        self.armUpJoy()
                     elif(armCommand < -0.1):
                         self.arm_pub.publish(self.arm_cur_angle-ArmMoveAmount)
+                        self.armDownJoy()
                     else:
                         self.arm_pub.publish(self.arm_cur_angle)
+                        self.armStableJoy()
 
                     self.handState = self.calcHandState(self.handUp, self.handDown, self.handState)
                     self.hand_pub.publish(self.handState)

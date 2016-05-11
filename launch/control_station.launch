@@ -1,0 +1,8 @@
+<launch>
+    <rosparam command="load" file="$(find classic_robot)/param/motor_params.yaml" />
+    <node name="joystick" pkg="joy" type="joy_node"/>
+    <node pkg="classic_robot" type="control_station.py" output="screen" name="control_station"/>
+    <node pkg="gray_transceiver" type="gray_transceiver_main.py" name="gray_transceiver" required="true">
+    <remap from="joy" to="joy_out"
+    </node>
+</launch>
