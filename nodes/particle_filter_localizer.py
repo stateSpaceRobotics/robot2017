@@ -14,7 +14,6 @@ particles = []        #Our list of particles
 number_of_particles = 500 #How many particles we have
 total_weight =0 #Total weight of all particles
 partial_weight_sum = [] #The partial weight of each particle
-imu_pose = None # Our pose estimate (from imu)
 command = None # The most recent drive command
 last_filter_update_time = None #When was our last filter update?
 
@@ -30,29 +29,28 @@ right_beacon = None #The location (x,y) of right beacon
 aruco_pose = None # Our aruco message estimate (from aruco)
 aruco_pose_time = None #Last aruco message time?
 aruco_location_sd = 0.1
-aruco_theta_sd = 0.01
+aruco_theta_sd = 0.05
 
 # KINECT STUFF
-kinect_epsilon_d = None #The distance noise for kinect beacon sensing
-kinect_epsilon_a = None #The angle noise for kinect beacon sensing
-kinect_random_reading_p = None #Probability of a random reading for kinect
-kinect_missed_reading_p = None #Probability of no reading when there should be one
-kinect_min_fov_angle = 0.0 #Minimum angle (in robot coordinates) of fov
-kinect_max_fov_angle = 0.0 #Maximum angle (in robot coordinates) of fov
+kinect_epsilon_d = 0.2 #The distance noise for kinect beacon sensing
+kinect_epsilon_a = 0.05 #The angle noise for kinect beacon sensing
+kinect_random_reading_p = 0.1 #Probability of a random reading for kinect
+kinect_missed_reading_p = 0.05 #Probability of no reading when there should be one
+kinect_min_fov_angle = -0.375 #Minimum angle (in robot coordinates) of fov
+kinect_max_fov_angle = 0.375 #Maximum angle (in robot coordinates) of fov
 
 # LIDAR STUFF
-lidar_epsilon_d = None #The distance noise for lidar beacon sensing
-lidar_epsilon_a = None  #The angle noise for lidar beacon sensing
-lidar_random_reading_p = None #Probability of a random reading for lidar
-lidar_missed_reading_p = None #Probability of no reading when there should be one
-lidar_min_fov_angle = 0.0 #Minimum angle (in robot coordinates) of fov
-lidar_max_fov_angle = 0.0 #Maximum angle (in robot coordinates) of fov
+lidar_epsilon_d = 0.1 #The distance noise for lidar beacon sensing
+lidar_epsilon_a = 0.05  #The angle noise for lidar beacon sensing
+lidar_random_reading_p = 0.05 #Probability of a random reading for lidar
+lidar_missed_reading_p = 0.05 #Probability of no reading when there should be one
+lidar_min_fov_angle = -2.36 #Minimum angle (in robot coordinates) of fov
+lidar_max_fov_angle = 2.36 #Maximum angle (in robot coordinates) of fov
 
 # INITIAL STUFF
 initial_pose = (0,0,0) # initial pose of the robot
-initial_location_sd = 0.3 # initial sd of x and y coordinates of robot location
-initial_theta_sd = 0.01 #initial sd of robot's theta
-modifying_particles = False
+initial_location_sd = 0.1 # initial sd of x and y coordinates of robot location
+initial_theta_sd = 0.05 #initial sd of robot's theta
 #END Global Variable Definitions
 #####################
 
@@ -552,5 +550,5 @@ if __name__ == '__main__':
         duration = after - before
         cur_delta_t = duration.to_sec()
         delta_t_sum = delta_t_sum + cur_delta_t
-        print 'Filter iteration took: ', delta_t_sum / float(iteration), 'seconds'
+        #print 'Filter iteration took: ', delta_t_sum / float(iteration), 'seconds'
 
