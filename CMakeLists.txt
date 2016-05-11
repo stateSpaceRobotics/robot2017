@@ -8,6 +8,8 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  geometry_msgs
+  tf
 )
 
 ## System dependencies are found with CMake's conventions
@@ -102,7 +104,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES classic_robot
-#  CATKIN_DEPENDS roscpp rospy std_msgs
+#  CATKIN_DEPENDS roscpp rospy std_msgs geometry_msgs tf
 #  DEPENDS system_lib
 )
 
@@ -186,3 +188,9 @@ include_directories(
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
+
+# Build transform inverter
+include_directories(include ${catkin_INCLUDE_DIRS})
+add_executable(transform_inverter src/transform_inverter.cpp)
+target_link_libraries(transform_inverter ${catkin_LIBRARIES})
+#add_dependencies(transform_inverter )
