@@ -5,12 +5,16 @@ topics:
     des_arm_angle: desired_arm_angle                        #
     hand_state: hand_state                                  #
     drive_cmds: cmd_vel                                     # ROS Twist msgs, twist cmds for movement
+    command: cmd_vel                                        # ROS Twist msgs, twist cmds for movement
     drive_cmds_pfield: cmd_vel_pfield                       # ROS Twist msgs, twist cmds for movement from the potential field node
-    particleFilter_pose_out: /particle_filter/pose_out      #
     path: obstacle_path                                     #
     navigation_goals: nav_goal                              # ROS Point msgs, navigation goal
     joystick: joy                                           # ROS Joy msgs, msgs from controller
     joystick_mbed: joystick_mbed                            #
+    filtered_pose: filtered_pose
+    kinect_beacon_points: kinect_beacon_points
+    aruco_pose: aruco_pose
+
 
     # op_mode: operation_mode                                 # ROS String msgs, operation mode for robot
     # hopper_cmds: hopper_control                             # ROS Int16 msgs, cmds (-128, 127) for hopper

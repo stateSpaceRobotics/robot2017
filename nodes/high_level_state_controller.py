@@ -13,7 +13,7 @@ DES_ARM_ANGLE_TOPIC = rospy.get_param("topics/des_arm_angle", "desired_arm_angle
 HAND_STATE_TOPIC = rospy.get_param("topics/hand_state", "hand_state")
 TWIST_TOPIC = rospy.get_param("topics/drive_cmds", "cmd_vel")
 DRIVE_PFIELD_TOPIC = rospy.get_param("topics/drive_cmds_pfield", "cmd_vel_pfield")
-POSE_TOPIC = rospy.get_param("topics/particleFilter_pose_out", "beacon_localization_pose")#"/particle_filter/pose_out")
+POSE_TOPIC = rospy.get_param("filtered_pose", "filtered_pose")#"/particle_filter/pose_out")
 PATH_TOPIC = rospy.get_param("topics/path", "/obstacle_path")
 GOAL_TOPIC = rospy.get_param("topics/navigation_goals", "nav_goal")
 JOY_TOPIC = rospy.get_param("topics/joystick", "joy")
@@ -224,7 +224,7 @@ class high_level_state_controller(object):
 
                     #keep a counter of the number of the times it has already mined, can create path based on angle
                     #   pulled from an array based on iteration, make sure to reset the mining path to None when leaving this state
-                    if(self.miningReady and not self.miningDone ):
+                    elif(self.miningReady and not self.miningDone ):
                         if(self.minePath == None):
                             self.minePath = self.calcMiningPath(ANGLES_TO_MINE[self.miningAngleIndex])
                             self.miningAngleIndex += 1
@@ -244,6 +244,7 @@ class high_level_state_controller(object):
                     elif self.miningDone:
                         self.handState = False
                         self.hand_pub(self.handState)
+                        self.setHandButton()
                         if (self.closeTo(self.minePath[self.miningPathIndex])):
                             self.miningPathIndex -= 1
                             if (self.miningPathIndex < 0):
