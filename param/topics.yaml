@@ -1,0 +1,34 @@
+topics:
+    beacon_lost: beacon_lost                                # ROS Bool msgs, true if beacon lost
+    lidar_beacon_points: lidar_beacon_points                #
+    cur_arm_angle: current_arm_angle                        #
+    des_arm_angle: desired_arm_angle                        #
+    hand_state: hand_state                                  #
+    drive_cmds: cmd_vel                                     # ROS Twist msgs, twist cmds for movement
+    command: cmd_vel                                        # ROS Twist msgs, twist cmds for movement
+    drive_cmds_pfield: cmd_vel_pfield                       # ROS Twist msgs, twist cmds for movement from the potential field node
+    path: obstacle_path                                     #
+    navigation_goals: nav_goal                              # ROS Point msgs, navigation goal
+    joystick: joy                                           # ROS Joy msgs, msgs from controller
+    joystick_mbed: joystick_mbed                            #
+    filtered_pose: filtered_pose
+    kinect_beacon_points: kinect_beacon_points
+    aruco_pose: aruco_pose
+
+
+    # op_mode: operation_mode                                 # ROS String msgs, operation mode for robot
+    # hopper_cmds: hopper_control                             # ROS Int16 msgs, cmds (-128, 127) for hopper
+    # collector_spin_cmds: collector_spin_control             # ROS Int16 msgs, cmds (-128, 127) for coll spin
+    # collector_tilt_cmds: collector_tilt_control             # ROS Int16 msgs, cmds (-128, 127) for coll tilt
+    # localization_pose: beacon_localization_pose             # ROS PoseStamped msgs, pose from beacon localization
+    # localization_pose_filtered: beacon_localization_pose_filtered
+    # hopper_potentiometer: hopper_pot                        # ROS UInt16 msgs, value of hopper pot
+    # collector_potentiometer: collector_pot                  # ROS UInt16 msgs, value of coll pot
+    # hopper_state: hopper_state                              # ROS String msgs, current state of hopper
+    # collector_state: collector_state                        # ROS String msgs, current state of collector
+    # scoop_safety: scoop_safety                              # ROS Bool msgs, true if scoop safe for driving
+    # dump_cmds: dump_cmds                                    # ROS String msgs, cmds for dump control
+    # beacon_lost_filtered: beacon_lost_filtered
+    # reached_goal: reached_goal                              # ROS Bool msgs, true if robot has navigated to current goal
+    # lidar_pivot_cmds: lidar_pivot_control                   # ROS String msgs, high level lidar_pivot_cmds
+    # lidar_pivot_target_angles: lidar_pivot_target_angles    # ROS Float32 msgs, cmds (angles in radians) for lidar pivot servo

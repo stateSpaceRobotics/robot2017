@@ -1,0 +1,8 @@
+wheel_separation: 1                 #distance between the left and right wheels, in meters
+wheel_radius: 0.25                  #radius of the wheels, in meters
+arm_angle_up: 100                   #angle of the arm when it is fully up, in degrees
+arm_angle_down: 10                  #angle of the arm when it is fully down, in degrees
+distance_to_mine: 1.5               #distance to cover while mining, in meters
+map_width: map_width
+map_height: map_height
+initial_pose: (0,0,0)               # initial pose of the robot
