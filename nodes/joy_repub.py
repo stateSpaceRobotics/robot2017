@@ -26,13 +26,13 @@ class joy_repubber(object):
 
     def run(self):
         rate = rospy.Rate(1)
-        while not rospy.is_shutdown():
+        for each in range(0,10):
             message = GxRequest()
             message.description = "joy"
             message.type = "sensor_msgs/Joy"
             self.request_pub.publish(message)
             rate.sleep()
-        # rospy.spin()
+        rospy.spin()
 
 
 if __name__ == "__main__":
