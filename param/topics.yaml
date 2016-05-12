@@ -13,7 +13,7 @@ topics:
     joystick_mbed: joystick_mbed                            #
     filtered_pose: filtered_pose
     kinect_beacon_points: kinect_beacon_points
-    aruco_pose: aruco_pose
+    aruco_pose: "/ar_multi_board/transform"
 
 
     # op_mode: operation_mode                                 # ROS String msgs, operation mode for robot
