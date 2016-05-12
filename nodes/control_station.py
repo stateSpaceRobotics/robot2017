@@ -21,7 +21,7 @@ class control_station(object):
 
         rate = rospy.Rate(10)
         while not rospy.is_shutdown():
-            self.joy_pub.publish(data)
+            self.joy_pub.publish(self.joy)
             rate.sleep()
 
         #rospy.spin()

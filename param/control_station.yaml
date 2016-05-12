@@ -1,3 +1,5 @@
 gray_transceiver:
+    my_name:
+        control_station
     topics_i_have:
         sensor_msgs/Joy:/joy
