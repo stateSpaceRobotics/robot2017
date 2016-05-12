@@ -13,10 +13,7 @@ class joy_repubber(object):
         self.subscribers = []
 
         self.request_pub = rospy.Publisher("gray_transceiver/requests", GxRequest, queue_size=10)
-        message = GxRequest()
-        message.description = "joy"
-        message.type = "sensor_msgs/Joy"
-        self.request_pub.publish(message)
+        
 
     def joy_sub(self, data):
         self.joy_pub.publish(data)
@@ -28,10 +25,14 @@ class joy_repubber(object):
 
 
     def run(self):
-        # rate = rospy.Rate(1)
-        # while not rospy.is_shutdown():
-            # rate.sleep()
-        rospy.spin()
+        rate = rospy.Rate(1)
+        while not rospy.is_shutdown():
+            message = GxRequest()
+            message.description = "joy"
+            message.type = "sensor_msgs/Joy"
+            self.request_pub.publish(message)
+            rate.sleep()
+        # rospy.spin()
 
 
 if __name__ == "__main__":
