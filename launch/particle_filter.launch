@@ -4,5 +4,5 @@
     <rosparam command="load" file="$(find classic_robot)/param/topics.yaml" />
     <rosparam command="load" file="$(find classic_robot)/param/misc.yaml" />
 
-    <node name="particle_filter_localizer" type="particle_filter_localizer.py" package="classic_robot"/>
+    <node name="particle_filter_localizer" type="particle_filter_localizer.py" pkg="classic_robot"/>
 </launch>

@@ -1,6 +1,5 @@
 joy:
     left_drive: 1
-    right_drive: 4
     arm_down: 2
     arm_up: 5
     hand_down: 4
