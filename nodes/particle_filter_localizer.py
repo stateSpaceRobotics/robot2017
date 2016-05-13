@@ -162,7 +162,7 @@ def normcdf(x,mean,sd):
 def sensor_model(x, sd, ur, min_x, max_x):
     
     #How much probability mass is inside of our region of interest
-    alpha = 1.0 / (normcdf(max_x, 0.0, sd) - normcdf(min_x, 0.0, sd)
+    alpha = 1.0 / (normcdf(max_x, 0.0, sd) - normcdf(min_x, 0.0, sd))
     
     prob_of_gaussian = alpha * normpdf(x, 0.0, sd)
     
