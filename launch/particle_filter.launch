@@ -1,0 +1,8 @@
+<launch>
+    <rosparam command="load" file="$(find classic_robot)/param/particle_filter.yaml" />
+    <rosparam command="load" file="$(find classic_robot)/param/beacon_localization.yaml" />
+    <rosparam command="load" file="$(find classic_robot)/param/topics.yaml" />
+    <rosparam command="load" file="$(find classic_robot)/param/misc.yaml" />
+
+    <node name="particle_filter_localizer" type="particle_filter_localizer.py" package="classic_robot"/>
+</launch>

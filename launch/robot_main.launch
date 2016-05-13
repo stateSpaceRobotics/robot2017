@@ -17,4 +17,7 @@
 		<arg name="transform_topic" default="/ar_multi_board/transform" />
 	</include>
 
+	<!--Launch the nodes used for autonomy -->
+	<include file="$(find classic_robot)/launch/autonomy.launch" />
+
 </launch>
