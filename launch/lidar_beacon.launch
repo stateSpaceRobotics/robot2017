@@ -4,7 +4,7 @@
     <!-- Launch hokuyo node; taken from hokuyo launch files -->
     <node name="hokuyo" pkg="hokuyo_node" type="hokuyo_node" respawn="false" output="screen">
         <!-- Remap laser scan topic from /scan to /aries/front_scan -->
-            <remap from="scan" to="aries/front_scan" />
+        <remap from="scan" to="base_scan" />
 
         <!-- Starts up faster, but timestamps will be inaccurate. --> 
         <param name="calibrate_time" type="bool" value="false"/> 
@@ -12,9 +12,11 @@
         <!-- Set the port to connect to here -->
         <param name="port" type="string" value="/dev/ttyACM0"/> 
         
-        <param name="intensity" type="bool" value="true"/>
-        <param name="min_ang" type="double" value="-0.829"/>
-        <param name="max_ang" type="double" value="0.826"/>
+        <param name="intensity" type="bool" value="false"/>
+        <!--<param name="min_ang" type="double" value="-2.36"/>
+        <param name="max_ang" type="double" value="2.36"/>-->
+        <param name="min_ang" type="double" value="-2.2689"/>
+        <param name="max_ang" type="double" value="2.2689"/>
     </node>
 
     <node name="lidar_beacon_detector" pkg="classic_robot" type="lidar_beacon_detector.py" /> 

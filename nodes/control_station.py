@@ -14,7 +14,7 @@ class control_station(object):
 
     def joy_sub(self, data):
         self.joy = data
-        self.joy_pub.publish(data)
+        # self.joy_pub.publish(data)
 
     def run(self):
         
@@ -24,7 +24,7 @@ class control_station(object):
             self.joy_pub.publish(self.joy)
             rate.sleep()
 
-        #rospy.spin()
+            # rospy.spin()
 
 
 if __name__ == "__main__":
