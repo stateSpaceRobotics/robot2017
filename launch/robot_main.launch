@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <launch>
+	<!-- Launch Lidar beacon dection -->
+	<include file="$(find classic_robot)/launch/lidar_beacon.launch" />
+
+
 	<!-- Launches aruco node -->
 	<include file="$(find classic_robot)/launch/aruco.launch" >
 

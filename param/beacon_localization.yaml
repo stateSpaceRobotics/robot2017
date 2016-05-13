@@ -4,5 +4,5 @@ beacon_localization:
     post_distance_err: 0.15
     left_post_loc: [-0.686, 0]
     right_post_loc: [0.686, 0]
-    post_width: 0.1016
+    post_width: 0.223
     post_width_err: 0.4
