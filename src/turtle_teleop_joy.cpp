@@ -67,8 +67,7 @@ private:
   
   ros::NodeHandle nh_;
 
-  int linear_, angular_;
-  double l_scale_, a_scale_;
+  int left_stick,right_stick,left_trig,right_trig;
   //ros::Publisher vel_pub_;
   ros::Subscriber joy_sub_;
   
@@ -81,15 +80,13 @@ TeleopTurtle::~TeleopTurtle(){
 close(fd);
 }
 
-TeleopTurtle::TeleopTurtle():
-  linear_(1),
-  angular_(2)
+TeleopTurtle::TeleopTurtle()
 {
 
-  nh_.param("axis_linear", linear_, linear_);
-  nh_.param("axis_angular", angular_, angular_);
-  nh_.param("scale_angular", a_scale_, a_scale_);
-  nh_.param("scale_linear", l_scale_, l_scale_);
+  nh_.param("~left_trigger", left_trig, left_trig);
+  nh_.param("~right_trigger", right_trig, right_trig);
+  nh_.param("~left_y_stick", left_stick, left_stick);
+  nh_.param("~right_y_stick", right_stick, right_stick);
 // %EndTag(PARAMS)%
 // %Tag(PUB)%
   //vel_pub_ = nh_.advertise<turtlesim::Twist>("turtle1/command_Twist", 1);
@@ -128,15 +125,15 @@ void TeleopTurtle::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
   //vel.linear = l_scale_*joy->axes[linear_];
   //vel_pub_.publish(vel);
   cout<<joy->axes[1]<<" "<<sizeof(float)<<endl;
-  gamepad.a = (short)scale(32767,0,joy->axes[1],0,1);
-  gamepad.b = (short)scale(32767,0,joy->axes[3],0,1);
-  if((joy->axes[4])<0.0){
+  gamepad.a = (short)scale(32767,0,joy->axes[left_stick],0,1);
+  gamepad.b = (short)scale(32767,0,joy->axes[right_stick],0,1);
+  if((joy->axes[right_trig])<0.0){
   	gamepad.buttons.right_trig=1;
   }else{
         gamepad.buttons.right_trig=0;
   }
 
-  if((joy->axes[5])<0.0){
+  if((joy->axes[right_trig])<0.0){
   	gamepad.buttons.left_trig=1;
   }else{
         gamepad.buttons.left_trig=0;
