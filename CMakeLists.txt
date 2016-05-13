@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   tf
   message_generation
+  joy
 )
 
 ## System dependencies are found with CMake's conventions
@@ -194,4 +195,6 @@ include_directories(
 include_directories(include ${catkin_INCLUDE_DIRS})
 add_executable(transform_inverter src/transform_inverter.cpp)
 target_link_libraries(transform_inverter ${catkin_LIBRARIES})
+add_executable(turtle_teleop_joy src/turtle_teleop_joy.cpp)
+target_link_libraries(turtle_teleop_joy ${catkin_LIBRARIES})
 #add_dependencies(transform_inverter )
