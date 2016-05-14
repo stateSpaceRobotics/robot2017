@@ -67,7 +67,7 @@ private:
   
   ros::NodeHandle nh_;
 
-  int left_stick,right_stick,left_trig,right_trig;
+  int left_stick,right_stick;
   //ros::Publisher vel_pub_;
   ros::Subscriber joy_sub_;
   
@@ -80,13 +80,12 @@ TeleopTurtle::~TeleopTurtle(){
 close(fd);
 }
 
-TeleopTurtle::TeleopTurtle()
+TeleopTurtle::TeleopTurtle():left_stick(1),right_stick(4)
 {
 
-  nh_.param("~left_trigger", left_trig, left_trig);
-  nh_.param("~right_trigger", right_trig, right_trig);
-  nh_.param("~left_y_stick", left_stick, left_stick);
-  nh_.param("~right_y_stick", right_stick, right_stick);
+
+  //nh_.param("left_y_stick", left_stick, left_stick);
+  //nh_.param("right_y_stick", right_stick, right_stick);
 // %EndTag(PARAMS)%
 // %Tag(PUB)%
   //vel_pub_ = nh_.advertise<turtlesim::Twist>("turtle1/command_Twist", 1);
@@ -97,9 +96,9 @@ TeleopTurtle::TeleopTurtle()
  strcpy(myfifo, "./myfifo1");
 
  /* create the FIFO (named pipe) */
- mkfifo(myfifo, 0666);
+ mkfifo(myfifo, 0600);
  /* write "Hi" to the FIFO */
- fd = open("./myfifo1", O_WRONLY ); //open(myfifo, O_WRONLY | O_NONBLOCK);
+ fd = open("./myfifo1", O_RDWR ); //open(myfifo, O_WRONLY | O_NONBLOCK);
  if (fd == -1) {
      perror("open");
      exit(0);
@@ -110,7 +109,7 @@ TeleopTurtle::TeleopTurtle()
 
 
 
-  joy_sub_ = nh_.subscribe<sensor_msgs::Joy>("joy", 10, &TeleopTurtle::joyCallback, this);
+  joy_sub_ = nh_.subscribe<sensor_msgs::Joy>("/control_station/joy", 10, &TeleopTurtle::joyCallback, this);
 // %EndTag(SUB)%
 }
 
@@ -124,22 +123,20 @@ void TeleopTurtle::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
   //vel.angular = a_scale_*joy->axes[angular_];
   //vel.linear = l_scale_*joy->axes[linear_];
   //vel_pub_.publish(vel);
-  cout<<joy->axes[1]<<" "<<sizeof(float)<<endl;
+  //cout<<joy->axes[1]<<" "<<sizeof(float)<<endl;
   gamepad.a = (short)scale(32767,0,joy->axes[left_stick],0,1);
   gamepad.b = (short)scale(32767,0,joy->axes[right_stick],0,1);
-  if((joy->axes[right_trig])<0.0){
-  	gamepad.buttons.right_trig=1;
-  }else{
-        gamepad.buttons.right_trig=0;
-  }
+  
+  gamepad.buttons.right_trig=(int)joy->buttons[0];
 
-  if((joy->axes[right_trig])<0.0){
-  	gamepad.buttons.left_trig=1;
-  }else{
-        gamepad.buttons.left_trig=0;
-  }  
-  gamepad.buttons.left_but=joy->buttons[4];
-  gamepad.buttons.right_but=joy->buttons[5];
+
+  
+  gamepad.buttons.left_trig=(int)joy->buttons[1];
+
+  gamepad.buttons.left_but=(int)joy->buttons[4];
+  gamepad.buttons.right_but=(int)joy->buttons[5];
+
+  cout<<gamepad.a<<" "<<gamepad.b<<" "<< (int)gamepad.buttons.right_trig <<" "<<(int) gamepad.buttons.right_but <<" "<< (int)gamepad.buttons.left_trig << " " <<(int)gamepad.buttons.left_but<<endl;
   //bzero(buf,8);
   //memcpy(buf,&a,sizeof(float));
   //n = write(this->newsockfd,gamepad.xpadstate,sizeof(Xpad));

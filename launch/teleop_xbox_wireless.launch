@@ -3,6 +3,6 @@
     <param name="left_y_stick" value="1" type="int"/>
     <param name="right_y_stick" value="3" type="int"/>
 
-    <node pkg="classic_robot" type="turtle_teleop_joy" name="teleop"/>
+    <node pkg="classic_robot" type="turtle_teleop_joy" name="teleop" output="screen"/>
 
 </launch>
