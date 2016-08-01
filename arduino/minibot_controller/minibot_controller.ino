@@ -27,8 +27,8 @@
 
 #define ETX '\r'
 #define STX 'B'
-
-// MSG format: "B{ADDRESS}{COMMAND}{DATA}{CHECKSUM}{PWM}\r"
+// Using Netstrings format: length:msg,
+// MSG format: "{LEN}:{ADDRESS}{COMMAND}{DATA}{CHECKSUM}{PWM}\r"
 char* buf[4];
 const char* ssid = "**********";
 const char* password = "**********";
