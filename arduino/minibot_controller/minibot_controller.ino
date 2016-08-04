@@ -104,12 +104,7 @@ void parse_cmd(int len)
   packetBuffer[0] = '\0';
   
   // Debug output
-  Serial1.print("Lin: ");
-  Serial1.println(lin);
-  Serial1.print("ang: ");
-  Serial1.println(ang);
-  Serial1.print("ser: ");
-  Serial1.println(servo_ang);
+  Serial1.println("Command parsed!");
   // Call PID/Servo Control Here
   
 }
