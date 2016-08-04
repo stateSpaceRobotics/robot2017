@@ -19,6 +19,7 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 #include <ESP8266WiFi.h>
+#include <WiFiUdp.h>
 
 //how many clients should be able to telnet to this ESP8266
 #define MAX_SRV_CLIENTS 1
@@ -28,80 +29,105 @@
 #define ETX '\r'
 #define STX 'B'
 // Using Netstrings format: length:msg,
-// MSG format: "{LEN}:{ADDRESS}{COMMAND}{DATA}{CHECKSUM}{PWM}\r"
-char* buf[4];
+// MSG format: "{LIN}:{ANG}:{SERVO_ANG}"
+const char* hostname = "Minibot_ESP";
 const char* ssid = "**********";
 const char* password = "**********";
 
-WiFiServer server(23);
-WiFiClient serverClients[MAX_SRV_CLIENTS];
+WiFiUDP port;
+char packetBuffer[255];
+unsigned int localPort = 9999;
 
 void setup() {
   // Initialize PWM pin, TODO: Verify pin mode correct!
   pinMode(SERVO_PWM_PIN, OUTPUT);
+
+  // Debug Serial
   Serial1.begin(115200);
+
+  WiFi.hostnmame(hostname);
   WiFi.begin(ssid, password);
-//  TODE: write to port instead
+  
   Serial1.print("\nConnecting to "); Serial1.println(ssid);
   while (WiFi.status() != WL_CONNECTED) delay(500);
-  
-  //start UART and the server
+  // open UDP port
+  port.begin(localPort);
+  //start main Serial
   Serial.begin(115200);
-  server.begin();
-  server.setNoDelay(true);
-// TODO: write to port instead  
-  Serial1.print("Ready! Use 'telnet ");
+  // Debug Serial
+  Serial1.print("Ready!  IP: ");
   Serial1.print(WiFi.localIP());
-  Serial1.println(" 23' to connect");
+  Serial1.print(" Port: ");
+  Serial1.println(localPort);
 }
 
-void parse_cmd(int client)
+void parse_cmd(int len)
 {
-  char input;
-  do
-  {
-    input = serverClients[client].read();  
-  }while(serverClients[client].available() && input != 'B');
   int i = 0;
-  while(serverClients[client].available() && i++ < 4)
-  {
-    buf[i] = serverClients[client].read();
+  int j = 0;
+  char val[32];
+  char current;
+  float lin, ang, servo_ang;
+
+  // parse linear
+  while (packetBuffer[i] != ':'){
+    val[j] = packetBuffer[i];
+    j++;
+    i++;
   }
-  Serial1.print(buf);
-  Serial.print(buf);
-  if (input = serverClients[client].read() != '\r')
-  {
-    analogWrite(SERVO_PWM_PIN, input); 
+  val[j] = '\0';
+  sscanf(val, "%f", &lin);
+  i++;
+  val[i] = '\0';
+  
+  // parse angular
+  j = 0;
+  while (packetBuffer[i] != ':'){
+    val[j] = packetBuffer[i];
+    j++;
+    i++;
   }
+  val[j] = '\0';
+  sscanf(val, "%f", &ang);
+  i++;
+  val[i] = '\0';
+
+  // parse servo angle
+  for(i; i<len; i++){
+    val[j] = packetBuffer[i];
+    j++
+  }
+  val[j] = '\0'
+  sscanf(val, "%f", &servo_ang
+  
+  // clear buffer
+  packetBuffer[0] = '\0';
+  
+  // Debug output
+  Serial1.print("Lin: ");
+  Serial1.println(lin);
+  Serial1.print("ang: ");
+  Serial1.println(ang);
+  Serial1.print("ser: ");
+  Serial1.println(servo_ang);
+  // Call PID/Servo Control Here
+  
 }
 
 void loop() {
-  uint8_t i;
-  //check if there are any new clients
-  if (server.hasClient()){
-    for(i = 0; i < MAX_SRV_CLIENTS; i++){
-      //find free/disconnected spot
-      if (!serverClients[i] || !serverClients[i].connected()){
-        if(serverClients[i]) serverClients[i].stop();
-        serverClients[i] = server.available();
-        Serial1.print("New client: "); Serial1.print(i);
-        continue;
-      }
-    }
-    //no free/disconnected spot so reject
-    WiFiClient serverClient = server.available();
-    serverClient.stop();
+  int packetSize = port.parsePacket();
+
+  if (packetSize) {
+    int len = port.read(packetBuffer, 255);
+    // Sets ending flag in buffer
+    if (len > 0) packetBuffer[len-1] = '\0';
+    // Debug
+    Serial1.println(packetBuffer);
+    // Acknowledge
+    port.beginPacket(port.remoteIP(), port.remotePort());
+    port.write("Ack: ");
+    port.write(packetBuffer);
+    parse_cmd(packetBuffer, len);
   }
-  //check clients for data
-  for(i = 0; i < MAX_SRV_CLIENTS; i++){
-    if (serverClients[i] && serverClients[i].connected()){
-      if(serverClients[i].available()){
-        //get data from the telnet client and push it to the UART
-        parse_cmd(i);
-      }
-    }
-  }
-  //check UART for data
-  yield()
-  }
+  delay(25);
 }
