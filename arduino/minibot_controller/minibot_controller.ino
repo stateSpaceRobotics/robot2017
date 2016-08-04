@@ -21,18 +21,16 @@
 #include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
 
-//how many clients should be able to telnet to this ESP8266
-#define MAX_SRV_CLIENTS 1
-// servo pwm pin, 5 IS PLACEHOLDER
+// servo pwm pin, 4 IS PLACEHOLDER
 #define SERVO_PWM_PIN 4
 
 #define ETX '\r'
 #define STX 'B'
 // Using Netstrings format: length:msg,
 // MSG format: "{LIN}:{ANG}:{SERVO_ANG}"
-const char* hostname = "Minibot_ESP";
-const char* ssid = "**********";
-const char* password = "**********";
+const char* host_name = "Minibot_ESP";
+const char* ssid = "SSID Here";
+const char* password = "PASS Here";
 
 WiFiUDP port;
 char packetBuffer[255];
@@ -45,11 +43,13 @@ void setup() {
   // Debug Serial
   Serial1.begin(115200);
 
-  WiFi.hostnmame(hostname);
+  WiFi.hostname(host_name);
   WiFi.begin(ssid, password);
   
   Serial1.print("\nConnecting to "); Serial1.println(ssid);
-  while (WiFi.status() != WL_CONNECTED) delay(500);
+  while (WiFi.status() != WL_CONNECTED){
+    delay(500);
+  }
   // open UDP port
   port.begin(localPort);
   //start main Serial
@@ -76,7 +76,7 @@ void parse_cmd(int len)
     i++;
   }
   val[j] = '\0';
-  sscanf(val, "%f", &lin);
+  lin = atof(val);
   i++;
   val[i] = '\0';
   
@@ -88,17 +88,17 @@ void parse_cmd(int len)
     i++;
   }
   val[j] = '\0';
-  sscanf(val, "%f", &ang);
+  ang = atof(val);
   i++;
   val[i] = '\0';
 
   // parse servo angle
   for(i; i<len; i++){
     val[j] = packetBuffer[i];
-    j++
+    j++;
   }
-  val[j] = '\0'
-  sscanf(val, "%f", &servo_ang
+  val[j] = '\0';
+  servo_ang = atof(val);
   
   // clear buffer
   packetBuffer[0] = '\0';
@@ -122,7 +122,8 @@ void loop() {
     port.beginPacket(port.remoteIP(), port.remotePort());
     port.write("Ack: ");
     port.write(packetBuffer);
-    parse_cmd(packetBuffer, len);
+    parse_cmd(len);
   }
+
   delay(25);
 }
