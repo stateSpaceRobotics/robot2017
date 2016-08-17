@@ -29,12 +29,13 @@
 #define STX 'B'
 
 //Robot Physical Paramaters
-#define wheel_radius 2.0
-#define robot_width  1.0
+#define WHEEL_RADIUS 2.0
+#define ROBOT_WIDTH  1.0
+#define ENC_CPR 768
 
 //Output limits for PID. The second motor is set to proper range before sending to motor driver(see function send_to_motor_driver() for details)
-#define min_out 1.0
-#define max_out 128.0
+#define MIN_OUTPUT 1.0
+#define MAX_OUTPUT 128.0
 
 // Using Netstrings format: length:msg,
 // MSG format: "{LIN}:{ANG}:{SERVO_ANG}"
@@ -42,9 +43,13 @@ const char* host_name = "Minibot_ESP";
 const char* ssid = "SSID Here";
 const char* password = "PASS Here";
 
+// UDP info
 WiFiUDP port;
 char packetBuffer[255];
 unsigned int localPort = 9999;
+
+// Command values
+float cmd_lin_vel, cmd_ang_vel, cmd_servo_ang;
 
 //PID Tuning Paramaters
 double Kp = 1.0, Ki = 0.0, Kd = 0.0;
@@ -64,17 +69,15 @@ double left_output_value;
 
 //Set up Left PID
 PID Left_PID(&v_left_input, &left_output_value, &v_left_setpoint, Kp, Ki, Kd, DIRECT);
-
  //Set up Right PID
 PID Right_PID(&v_right_input, &right_output_value, &v_right_setpoint, Kp, Ki, Kd, DIRECT);
-
 
 
 //Combines the linear velocity and angular velocity into individual velocities for the left/right motor
 void convert_to_linear(float ang_vel, float lin_vel, double& v_right, double& v_left){
 
-    v_right = ((2.0*lin_vel) + (ang_vel*robot_width))/(2.0*wheel_radius);
-    v_left  = ((2.0*lin_vel) - (ang_vel*robot_width))/(2.0*wheel_radius);    
+    v_right = ((2.0*lin_vel) + (ang_vel*ROBOT_WIDTH))/(2.0*WHEEL_RADIUS);
+    v_left  = ((2.0*lin_vel) - (ang_vel*ROBOT_WIDTH))/(2.0*WHEEL_RADIUS);    
 
 }
 
@@ -109,22 +112,22 @@ void send_to_motor_driver(){
 void Motor_Setup(){
 
   //Set output limits
-  Left_PID.SetOutputLimits(min_out, max_out);
+  Left_PID.SetOutputLimits(MIN_OUTPUT, MAX_OUTPUT);
 
   Left_PID.SetMode(AUTOMATIC); //Turns PID On
 
 
   //Set output limits
-  Right_PID.SetOutputLimits(min_out, max_out);
+  Right_PID.SetOutputLimits(MIN_OUTPUT, MAX_OUTPUT);
 
   Right_PID.SetMode(AUTOMATIC); //Turns PID On
 }
 
-void Motor_Update(float ang_vel, float lin_vel){
+void Motor_Update(){
 
 
   //Convert angular + linear velocity commands to individual left/right velocity setpoints
-  convert_to_linear(ang_vel, lin_vel, v_right_setpoint, v_left_setpoint);
+  convert_to_linear(cmd_ang_vel, cmd_lin_vel, v_right_setpoint, v_left_setpoint);
     
   //Get/Set Input Varaible Values(Presumably from motor encoders) This should assign v_(right/left)_input in terms of a velocty(m/s)
   
@@ -179,7 +182,6 @@ void parse_cmd(int len)
   int j = 0;
   char val[32];
   char current;
-  float lin, ang, servo_ang;
 
   // parse linear
   while (packetBuffer[i] != ':'){
@@ -188,7 +190,7 @@ void parse_cmd(int len)
     i++;
   }
   val[j] = '\0';
-  lin = atof(val);
+  cmd_lin_vel = atof(val);
   i++;
   val[i] = '\0';
   
@@ -200,7 +202,7 @@ void parse_cmd(int len)
     i++;
   }
   val[j] = '\0';
-  ang = atof(val);
+  cmd_ang_vel = atof(val);
   i++;
   val[i] = '\0';
 
@@ -210,21 +212,17 @@ void parse_cmd(int len)
     j++;
   }
   val[j] = '\0';
-  servo_ang = atof(val);
+  cmd_servo_ang = atof(val);
   
   // clear buffer
   packetBuffer[0] = '\0';
   
   // Debug output
   Serial1.println("Command parsed!");
-
-  // Call PID/Servo Control Here
-  Motor_Update(ang, lin);
 }
 
 void loop() {
   int packetSize = port.parsePacket();
-
   if (packetSize) {
     int len = port.read(packetBuffer, 255);
     // Sets ending flag in buffer
@@ -237,6 +235,7 @@ void loop() {
     port.write(packetBuffer);
     parse_cmd(len);
   }
-
+  
+  Motor_Update();
   delay(25);
 }
