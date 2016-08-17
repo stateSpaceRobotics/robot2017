@@ -22,8 +22,12 @@
 #include <WiFiUdp.h>
 #include <PID_v1.h>
 
-// servo pwm pin, 4 IS PLACEHOLDER
-#define SERVO_PWM_PIN 4
+// pin assignments
+#define SERVO_PWM_PIN 14
+#define ENC_LEFT_A 4
+#define ENC_LEFT_B 5
+#define ENC_RIGHT_A 12
+#define ENC_RIGHT_B 13
 
 #define ETX '\r'
 #define STX 'B'
@@ -66,6 +70,15 @@ double v_left_input;
 double right_output_value;
 double left_output_value;
 
+// Encoder velocity variables
+volatile long rEncVal = 0;
+volatile long lEncVal = 0;
+long newLPos, newRPos;
+long oldLPos = 0;
+long oldRPos = 0;
+unsigned long curTime;
+unsigned long pastTime = 0;
+double RVel, LVel;
 
 //Set up Left PID
 PID Left_PID(&v_left_input, &left_output_value, &v_left_setpoint, Kp, Ki, Kd, DIRECT);
@@ -146,8 +159,18 @@ void Motor_Update(){
 
 
 void setup() {
-  // Initialize PWM pin, TODO: Verify pin mode correct!
+  // Initialize pins
+  pinMode(ENC_LEFT_A, INPUT);
+  pinMode(ENC_LEFT_B, INPUT);
+  pinMode(ENC_RIGHT_A, INPUT);
+  pinMode(ENC_RIGHT_B, INPUT);
   pinMode(SERVO_PWM_PIN, OUTPUT);
+
+  // enable pullups
+  digitalWrite(ENC_LEFT_A, HIGH);
+  digitalWrite(ENC_LEFT_B, HIGH);
+  digitalWrite(ENC_RIGHT_A, HIGH);
+  digitalWrite(ENC_RIGHT_B, HIGH);
 
   // Debug Serial
   Serial1.begin(115200);
@@ -174,6 +197,10 @@ void setup() {
   Motor_Setup();
   Serial1.println("...Done.");
 
+  // Set Pin interrupts
+  attachInterrupt(ENC_LEFT_A, l_pin_chng, RISING);
+  attachInterrupt(ENC_RIGHT_A, r_pin_chng, RISING);
+  Serial1.println("Encoder pin interrupts enabled...");
 }
 
 void parse_cmd(int len)
@@ -236,6 +263,42 @@ void loop() {
     parse_cmd(len);
   }
   
+  sample_Vels();
   Motor_Update();
   delay(25);
 }
+
+void sample_Vels() {
+  newLPos = lEncVal;
+  newRPos = rEncVal;
+  curTime = millis();
+  RVel = (newRPos - oldRPos) * 1000.0 / (curTime - oldTime) / ENC_CPR * WHEEL_RADIUS; // m/sec
+  LVel = (newLPos - oldLPos) * 1000.0 / (curTime - oldTime) / ENC_CPR * WHEEL_RADIUS; // m/sec
+  pastTime = curTime;
+  oldRPos = newRPos;
+  oldLPos = newLPos;
+}
+void l_pin_chng() {
+  // Triggers on rising A, so A is HIGH
+  int encoded = 0b10 | digitalRead(ENC_LEFT_B);
+
+  int sum = (prev_L_enc << 2) | encoded;
+
+  if(sum == 0b1101 || sum == 0b0100 || sum == 0b0010 || sum == 0b1011) lEncVal ++;
+  if(sum == 0b1110 || sum == 0b0111 || sum == 0b0001 || sum == 0b1000) lEncVal --;
+
+  prev_L_enc = encoded;
+}
+
+void r_pin_chng() {
+  // Triggers on rising A, so A is HIGH
+  int encoded = 0b10 | digitalRead(ENC_RIGHT_B);
+
+  int sum = (prev_R_enc << 2) | encoded;
+
+  if(sum == 0b1101 || sum == 0b0100 || sum == 0b0010 || sum == 0b1011) rEncVal ++;
+  if(sum == 0b1110 || sum == 0b0111 || sum == 0b0001 || sum == 0b1000) rEncVal --;
+
+  prev_R_enc = encoded;
+}
+
