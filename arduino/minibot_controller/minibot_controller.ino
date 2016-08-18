@@ -63,8 +63,8 @@ double v_right_setpoint;
 double v_left_setpoint;
 
 //Measured velocities of the motors
-double v_right_input;
-double v_left_input;
+double v_right_input = 0;
+double v_left_input = 0;
 
 //Output Values to be sent to the Sabertooth
 double right_output_value;
@@ -78,7 +78,6 @@ long oldLPos = 0;
 long oldRPos = 0;
 unsigned long curTime;
 unsigned long pastTime = 0;
-double RVel, LVel;
 
 //Set up Left PID
 PID Left_PID(&v_left_input, &left_output_value, &v_left_setpoint, Kp, Ki, Kd, DIRECT);
@@ -109,8 +108,8 @@ void send_to_motor_driver(){
   int right_output_int = (int)right_output_value;
   int left_output_int  = (int)left_output_value;
 
-  byte right_output_byte = (byte)right_output_value;
-  byte left_output_byte  = (byte)left_output_value;
+  byte right_output_byte = (byte)right_output_int;
+  byte left_output_byte  = (byte)left_output_int;
 
   //Sets MSb of second motor
   left_output_byte = 0x80 | left_output_byte;
@@ -144,7 +143,7 @@ void Motor_Update(){
     
   //Get/Set Input Varaible Values(Presumably from motor encoders) This should assign v_(right/left)_input in terms of a velocty(m/s)
   
-  //===============to be filled in=================//
+  sample_Vels();
 
   //Compute Right/Left PID Output Values
 
@@ -263,7 +262,6 @@ void loop() {
     parse_cmd(len);
   }
   
-  sample_Vels();
   Motor_Update();
   delay(25);
 }
@@ -272,8 +270,8 @@ void sample_Vels() {
   newLPos = lEncVal;
   newRPos = rEncVal;
   curTime = millis();
-  RVel = ( newRPos - oldRPos ) * 1000.0 / ( curTime - pastTime ) / ENC_CPR * WHEEL_RADIUS ; // m/sec
-  LVel = ( newLPos - oldLPos ) * 1000.0 / ( curTime - pastTime ) / ENC_CPR * WHEEL_RADIUS ; // m/sec
+  v_right_input = ( newRPos - oldRPos ) * 1000.0 / ( curTime - pastTime ) / ENC_CPR * WHEEL_RADIUS ; // m/sec
+  v_left_input = ( newLPos - oldLPos ) * 1000.0 / ( curTime - pastTime ) / ENC_CPR * WHEEL_RADIUS ; // m/sec
   pastTime = curTime;
   oldRPos = newRPos;
   oldLPos = newLPos;
