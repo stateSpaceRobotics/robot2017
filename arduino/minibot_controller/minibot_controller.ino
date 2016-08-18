@@ -272,8 +272,8 @@ void sample_Vels() {
   newLPos = lEncVal;
   newRPos = rEncVal;
   curTime = millis();
-  RVel = (newRPos - oldRPos) * 1000.0 / (curTime - oldTime) / ENC_CPR * WHEEL_RADIUS; // m/sec
-  LVel = (newLPos - oldLPos) * 1000.0 / (curTime - oldTime) / ENC_CPR * WHEEL_RADIUS; // m/sec
+  RVel = ( newRPos - oldRPos ) * 1000.0 / ( curTime - pastTime ) / ENC_CPR * WHEEL_RADIUS ; // m/sec
+  LVel = ( newLPos - oldLPos ) * 1000.0 / ( curTime - pastTime ) / ENC_CPR * WHEEL_RADIUS ; // m/sec
   pastTime = curTime;
   oldRPos = newRPos;
   oldLPos = newLPos;
@@ -282,23 +282,23 @@ void l_pin_chng() {
   // Triggers on rising A, so A is HIGH
   int encoded = 0b10 | digitalRead(ENC_LEFT_B);
 
-  int sum = (prev_L_enc << 2) | encoded;
+  int sum = ( lEncVal << 2 ) | encoded;
 
   if(sum == 0b1101 || sum == 0b0100 || sum == 0b0010 || sum == 0b1011) lEncVal ++;
   if(sum == 0b1110 || sum == 0b0111 || sum == 0b0001 || sum == 0b1000) lEncVal --;
 
-  prev_L_enc = encoded;
+  lEncVal = encoded;
 }
 
 void r_pin_chng() {
   // Triggers on rising A, so A is HIGH
   int encoded = 0b10 | digitalRead(ENC_RIGHT_B);
 
-  int sum = (prev_R_enc << 2) | encoded;
+  int sum = ( rEncVal << 2 ) | encoded;
 
   if(sum == 0b1101 || sum == 0b0100 || sum == 0b0010 || sum == 0b1011) rEncVal ++;
   if(sum == 0b1110 || sum == 0b0111 || sum == 0b0001 || sum == 0b1000) rEncVal --;
 
-  prev_R_enc = encoded;
+  rEncVal = encoded;
 }
 
