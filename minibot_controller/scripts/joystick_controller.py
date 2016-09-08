@@ -35,6 +35,7 @@ class joystick_controller(object):
         self.controllerState = data
         self.joyReceived = True
 
+    def run(self):
         '''
         This function is the processing function for this module.
         '''
