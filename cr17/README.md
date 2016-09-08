@@ -1,2 +1,2 @@
-# classic-robot
-This is the repository for the code for the classic robot approach
+# cr17
+This is the folder for the code for cr17

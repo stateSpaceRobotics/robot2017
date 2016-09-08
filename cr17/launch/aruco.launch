@@ -31,7 +31,7 @@
 		<param name="draw_markers_axis" type="bool" value="false" />
 	</node>
 
-	<node pkg="classic_robot" type="aruco_transform_broadcaster.py" name="aruco_transformer" >
+	<node pkg="cr17" type="aruco_transform_broadcaster.py" name="aruco_transformer" >
 		<param name="transform_topic" type="string" value="$(arg transform_topic" />
 	</node>
 

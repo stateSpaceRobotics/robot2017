@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package>
-  <name>classic_robot</name>
+  <name>cr17</name>
   <version>0.0.0</version>
-  <description>The classic_robot package</description>
+  <description>The cr17 package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag --> 
   <!-- Example:  -->

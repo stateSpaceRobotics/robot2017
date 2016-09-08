@@ -1,5 +1,5 @@
 <launch>
-    <include file="$(find classic_robot)/launch/hlsc.launch" />
-    <include file="$(find classic_robot)/launch/particle_filter.launch" />
-    <include file="$(find classic_robot)/launch/pfield.launch" />
+    <include file="$(find cr17)/launch/hlsc.launch" />
+    <include file="$(find cr17)/launch/particle_filter.launch" />
+    <include file="$(find cr17)/launch/pfield.launch" />
 </launch>

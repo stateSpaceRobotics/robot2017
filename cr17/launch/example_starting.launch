@@ -9,5 +9,5 @@
         y: 5
     </rosparam>
 
-    <include file="$(find classic_robot)/launch/robot_main.launch" />
+    <include file="$(find cr17)/launch/robot_main.launch" />
 </launch>

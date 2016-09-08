@@ -1,5 +1,5 @@
 <launch>
-    <rosparam command="load" file="$(find classic_robot)/param/beacon_localization.yaml" />
+    <rosparam command="load" file="$(find cr17)/param/beacon_localization.yaml" />
 
     <!-- Launch hokuyo node; taken from hokuyo launch files -->
     <node name="hokuyo" pkg="hokuyo_node" type="hokuyo_node" respawn="false" output="screen">
@@ -19,7 +19,7 @@
         <param name="max_ang" type="double" value="2.2689"/>
     </node>
 
-    <node name="lidar_beacon_detector" pkg="classic_robot" type="lidar_beacon_detector.py" /> 
+    <node name="lidar_beacon_detector" pkg="cr17" type="lidar_beacon_detector.py" /> 
 
 
 
