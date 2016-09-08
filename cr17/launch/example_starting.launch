@@ -1,0 +1,13 @@
+<launch>
+    <rosparam param="initial_pose">[0, 0, 0]</rosparam>
+    <rosparam param="path_points/dump_obstacles">
+        x: 0
+        y: 1
+    </rosparam>
+    <rosparam param="path_points/obstacle_mine">
+        x: 0
+        y: 5
+    </rosparam>
+
+    <include file="$(find classic_robot)/launch/robot_main.launch" />
+</launch>

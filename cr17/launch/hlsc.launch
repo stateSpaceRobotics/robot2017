@@ -1,0 +1,10 @@
+<launch>
+    <!--<rosparam command="load" file="$(find classic_robot)/param/topics.yaml" />
+    <rosparam command="load" file="$(find classic_robot)/param/misc.yaml" />
+-->
+    <rosparam command="load" file="$(find classic_robot)/param/joy.yaml" />
+
+    <node name="high_level_state_controller" type="high_level_state_controller.py" pkg="classic_robot"/>
+
+    <node name="path_pub" type="path_pub.py" pkg="classic_robot"/>
+</launch>
