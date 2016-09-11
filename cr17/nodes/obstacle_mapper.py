@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 import rospy
 
-class StuckDetector(object):
+class ObstacleMapper(object):
     def __init__(self):
-        rospy.init_node('stuck_detector')
+        rospy.init_node('obstacle_mapper')
 
     def run(self):
         rospy.spin()
@@ -11,5 +11,5 @@ class StuckDetector(object):
 
 
 if __name__ == "__main__":
-	stuckDetector = StuckDetector()
-	stuckDetector.run()
+	obstacleMapper = ObstacleMapper()
+	obstacleMapper.run()
