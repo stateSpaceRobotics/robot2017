@@ -1,0 +1,3 @@
+topics:
+  aruco_camera_info: "/test/camera/camera_info"
+  aruco_camera_image: "/test/camera/image_rect_color"

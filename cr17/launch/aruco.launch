@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<launch>
+	<!-- This should not be directly launched.
+		 Rather, include it in the main launch file 
+		 and launch that file.  -->
+
+	<arg name="rear_camera" />
+	<arg name="marker_size" />
+	<arg name="board_directory" />
+	<arg name="boards_config" />
+
+	<arg name="intraboard_transform" />
+	<arg name="world_to_bigBoard_transform" />
+	<arg name="transform_topic" />
+
+	<node pkg="ar_sys" type="multi_boards" name="ar_multi_board">
+
+		<!-- May need tweaking based on kinect/realsense -->
+		<remap from="/camera_info" to="$(arg rear_camera)/rgb/camera_info" />
+		<remap from="/image" to="$(arg rear_camera)/rgb/image_raw" />
+
+		<param name="image_is_rectified" type="bool" value="true"/>
+		<param name="marker_size" type="double" value="$(arg marker_size)"/>
+
+		<param name="boards_config" type="string" value="$(arg boards_config)" />
+
+		<param name="boards_directory" type="string" value="$(arg board_directory)" />
+
+		<param name="draw_markers" type="bool" value="false" />
+		<param name="draw_markers_cube" type="bool" value="true" />
+		<param name="draw_markers_axis" type="bool" value="false" />
+	</node>
+
+	<node pkg="cr17" type="aruco_transform_broadcaster.py" name="aruco_transformer" >
+		<param name="transform_topic" type="string" value="$(arg transform_topic" />
+	</node>
+
+	<node pkg="tf" type="static_transform_publisher" name="TF_big_to_lil_board" args="$(arg intraboard_transform)" />
+
+	<node pkg="tf" type="static_transform_publisher" name="TF_world_to_bigBoard" args="$(arg world_to_bigBoard_transform)" />
+
+
+</launch>

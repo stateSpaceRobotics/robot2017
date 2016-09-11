@@ -1,0 +1,4 @@
+<launch>
+    <rosparam command="load" file="$(find cr17)/param/topics.yaml" />
+    <node name="navigator" type="navigator.py" pkg="cr17"/>
+</launch>

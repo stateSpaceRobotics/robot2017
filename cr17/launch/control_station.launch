@@ -1,0 +1,5 @@
+<launch>
+    <rosparam command="load" file="$(find cr17)/param/control_station.yaml" />
+    <node name="joystick" pkg="joy" type="joy_node"/>
+    <node pkg="cr17" type="control_station.py" output="screen" name="control_station"/>
+</launch>

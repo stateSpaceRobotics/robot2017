@@ -1,0 +1,5 @@
+<launch>
+    <include file="$(find cr17)/launch/hlsc.launch" />
+    <include file="$(find cr17)/launch/particle_filter.launch" />
+    <include file="$(find cr17)/launch/pfield.launch" />
+</launch>

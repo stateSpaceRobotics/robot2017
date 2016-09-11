@@ -1,0 +1,8 @@
+<launch>
+
+    <param name="left_y_stick" value="1" type="int"/>
+    <param name="right_y_stick" value="3" type="int"/>
+
+    <node pkg="cr17" type="turtle_teleop_joy" name="teleop" output="screen"/>
+
+</launch>

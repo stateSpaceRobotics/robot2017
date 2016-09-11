@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<launch>
+
+	<!-- Flag for wireless/wired (1 or 0) -->
+	<arg name="wireless" default="1" />
+	
+	<!-- General Parameters -->
+	<rosparam command="load" file="$(find cr17)/param/topics.yaml" />
+    <rosparam command="load" file="$(find cr17)/param/misc.yaml" />
+
+	<!-- Controller parameters -->
+    <rosparam command="load" file="$(find cr17)/param/joy.yaml" />
+	<param name="/left_y_stick" value="1" type="int"/>
+	<group if="$(arg wireless)" >
+	    <param name="/right_y_stick" value="3" type="int"/>
+	    <rosparam command="delete" param="joy/right_drive" />
+	    <param name="/joy/right_drive" value="3" type="int"/>
+	</group>
+    <param name="/right_y_stick" value="4" type="int" unless="$(arg wireless)"/>
+    <param name="/joy/right_drive" value="4" type="int" unless="$(arg wireless)"/>
+
+    <!-- Launch Teleop Controls -->
+    <include file="$(find cr17)/launch/teleop_xbox.launch" />
+
+	<!-- Launch Lidar beacon dection -->
+	<include file="$(find cr17)/launch/lidar_beacon.launch" />
+
+	<!-- Launches aruco stack -->
+	<include file="$(find cr17)/launch/aruco.launch" >
+		<!-- aruco parameters -->
+		<arg name="rear_camera" default="/camera" />
+		<arg name="marker_size" default="0.19685" />
+		<arg name="board_directory" default="$(find cr17)/param" />
+		<arg name="boards_config" default="$(find cr17)/param/boardsConfiguration.yml" />
+		<arg name="intraboard_transform" default="0 -0.231775 0 0 0 0 1 /bigBoard /lilBoard 100" />
+		<arg name="world_to_bigBoard_transform" default="0 0 0 0 0.7071067811865475 0.7071067811865475 0 /bigBoard /world 100" />		
+		<arg name="transform_topic" default="/ar_multi_board/transform" />
+	</include>
+
+	<!--Launch the nodes used for autonomy -->
+	<include file="$(find cr17)/launch/autonomy.launch" />
+
+</launch>

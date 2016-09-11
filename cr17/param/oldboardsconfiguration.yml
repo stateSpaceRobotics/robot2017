@@ -1,0 +1,4 @@
+%YAML:1.0
+ar_sys_boards:
+   - { name:"/bigboard", path:"bigboard.yml", marker_size:0.3667125 }
+   - { name:"/lilboard", path:"lilboard.yml", marker_size:0.0492125 }

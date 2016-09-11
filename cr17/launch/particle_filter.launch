@@ -1,0 +1,8 @@
+<launch>
+    <rosparam command="load" file="$(find cr17)/param/particle_filter.yaml" />
+    <rosparam command="load" file="$(find cr17)/param/beacon_localization.yaml" />
+    <rosparam command="load" file="$(find cr17)/param/topics.yaml" />
+    <rosparam command="load" file="$(find cr17)/param/misc.yaml" />
+
+    <node name="particle_filter_localizer" type="particle_filter_localizer.py" pkg="cr17"/>
+</launch>
