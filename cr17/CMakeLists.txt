@@ -53,7 +53,7 @@ catkin_python_setup()
    localizationPoint.msg
    localizationPoints.msg
    wheelData.msg
-   scoop_control.msg
+   scoopControl.msg
  )
 
 ## Generate services in the 'srv' folder
