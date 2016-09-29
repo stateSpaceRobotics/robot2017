@@ -1,3 +1,4 @@
-float64 arm
-float64 scoop
+Header header
+float64 armVelAngular
+float64 scoopVelAngular
 
