@@ -1,0 +1,31 @@
+<launch>
+
+  <arg name="model" default="$(find simulation_2017)/urdf/r3dx.urdf"/>
+  <arg name="rvizconfig" default="$(find simulation_2017)/urdf.rviz" />
+
+
+
+  <param name="robot_description" command="$(find xacro)/xacro.py $(arg model)" />
+
+  <!-- push robot_description to factory and spawn robot in gazebo -->
+  <node name="urdf_spawner2" pkg="gazebo_ros" type="spawn_model"
+        args="-z .5 -x 1 -y 3 -unpause -urdf -model r3d2 -param robot_description" respawn="false" output="screen" />
+
+  <!--<node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" />-->
+
+  <!-- This param file is where any environment-agnostic (live or simulation)
+  configuration should be loaded, including controllers -->
+  <rosparam command="load" file="$(find simulation_2017)/config/control_r3dx.yaml" />
+
+  <!-- This node loads the two controllers into a controller manager (real or simulated). The
+  controllers are defined in config/control.yaml -->
+  <node name="r3d2_controller_spawner" pkg="controller_manager" type="spawner"
+    args="r3d2_diff_drive_controller
+          --shutdown-timeout 3">
+  </node>
+
+  <node name = "minibot_navigator_r3d2" pkg="multi_robot" type="minibot_navigator.py">
+    <remap from="/cmd_vel" to="/r3d2_diff_drive_controller/cmd_vel" />
+    <remap from="/odom" to="/r3d2/odom" />
+  </node>
+</launch>
