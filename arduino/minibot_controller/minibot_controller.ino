@@ -44,8 +44,8 @@
 // Using Netstrings format: length:msg,
 // MSG format: "{LIN}:{ANG}:{SERVO_ANG}"
 const char* host_name = "Minibot_ESP";
-const char* ssid = "SSID Here";
-const char* password = "PASS Here";
+const char* ssid = "EISM";
+const char* password = "starsrobot213";
 
 // UDP info
 WiFiUDP port;
@@ -67,8 +67,8 @@ double v_right_input = 0;
 double v_left_input = 0;
 
 //Output Values to be sent to the Sabertooth
-double right_output_value;
-double left_output_value;
+double right_output_value = 64;
+double left_output_value = 64;
 
 // Encoder velocity variables
 volatile long rEncVal = 0;
@@ -115,6 +115,7 @@ void send_to_motor_driver(){
   left_output_byte = 0x80 | left_output_byte;
 
   //Sends values over serial to the Sabertooth
+  Serial1.print(right_output_byte); Serial1.print("::"); Serial1.println(left_output_byte);
   Serial.write(right_output_byte);
   Serial.write(left_output_byte);
 
@@ -184,7 +185,7 @@ void setup() {
   // open UDP port
   port.begin(localPort);
   //start main Serial
-  Serial.begin(115200);
+  Serial.begin(38400);
   // Debug Serial
   Serial1.print("Ready!  IP: ");
   Serial1.print(WiFi.localIP());
@@ -275,6 +276,7 @@ void sample_Vels() {
   pastTime = curTime;
   oldRPos = newRPos;
   oldLPos = newLPos;
+  Serial1.print(lEncVal); Serial1.print(":::"); Serial1.println(rEncVal);
 }
 void l_pin_chng() {
   // Triggers on rising A, so A is HIGH
