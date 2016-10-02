@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 import rospy, signal, atexit, math
 from geometry_msgs.msg import Twist, Point, PoseStamped, Pose
