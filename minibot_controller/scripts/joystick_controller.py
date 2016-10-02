@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import rospy
+import math
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import Joy
 
@@ -26,7 +27,7 @@ class joystick_controller(object):
         # Setup publishers
         self.drive_pub = rospy.Publisher(drive_topic, Twist, queue_size = 10)
         # Setup subscribers
-        rospy.Subscriber(self.joystick_topic, Joy, self.joy_callback)
+        rospy.Subscriber(self.joystick_topic, Joy, self.joyCallback)
 
     def joyCallback(self, data):
         '''

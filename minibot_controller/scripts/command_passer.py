@@ -15,7 +15,7 @@ class command_passer(object):
     def __init__(self):
         rospy.init_node("command_passer")
         driveTopic = rospy.get_param("topics/drive_cmds", "cmd_vel")
-        self.hostname = rospy.get_param("hostNameOfMinibot","")#IP address
+        self.hostname = rospy.get_param("hostNameOfMinibot","192.168.1.241")#IP address
         self.port = rospy.get_param("portNumberOfMinibot",9999)
         
         rospy.Subscriber(driveTopic, Twist, self.velSub)
@@ -32,6 +32,9 @@ class command_passer(object):
         servo = LimitSignificance(str(servo))
         messageToSend = linear+":"+angular+":"+servo
         self.sock.sendto(messageToSend, (self.hostname, self.port))
+
+    def run(self):
+        rospy.spin()
 
 
 if __name__ == "__main__":
