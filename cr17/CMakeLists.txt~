@@ -12,9 +12,6 @@ find_package(catkin REQUIRED COMPONENTS
   tf
   message_generation
   joy
-  pcl_conversions
-  pcl_ros
-  sensor_msgs
 )
 
 ## System dependencies are found with CMake's conventions
