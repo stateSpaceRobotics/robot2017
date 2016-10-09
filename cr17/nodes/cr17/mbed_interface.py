@@ -1,7 +1,16 @@
 #!/usr/bin/env python2
 import rospy
-from geometry_messages.msg import Twist
+from geometry_msgs.msg import Twist
 from cr17.msg import wheelData, scoopControl
+
+import os
+import sys
+ 
+import usb.core
+import usb.util
+ 
+from time import sleep
+import random
 
 '''
 Sends low-level commands(scoop, arm, linear velocity, angular velocity) to Mbed over USB.
@@ -33,6 +42,26 @@ class MbedInterface(object):
         # Setup ROS publishers
         ######################################
         self.wheel_speed_pub = rospy.Publisher(WHEEL_SPEED_TOPIC, Twist, queue_size = 10)
+
+        # Find device
+        self.__hid_device = usb.core.find(idVendor=mbed_vendor_id,idProduct=mbed_product_id)
+    
+        if not self.__hid_device:
+            print "No device connected"
+        else:
+            sys.stdout.write('mbed found\n')
+            if self.__hid_device.is_kernel_driver_active(0):
+                try:
+                    self.__hid_device.detach_kernel_driver(0)
+                except usb.core.USBError as e:
+                    sys.exit("Could not detatch kernel driver: %s" % str(e))
+            try:
+                self.__hid_device.set_configuration()
+                self.__hid_device.reset()
+            except usb.core.USBError as e:
+                sys.exit("Could not set configuration: %s" % str(e))
+            
+            self.__endpoint = self.__hid_device[0][(0,0)][0]
 
 
     #Add new cmd_vel to USB message(x-linear/z-angular)
