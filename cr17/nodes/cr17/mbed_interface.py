@@ -17,6 +17,9 @@ Sends low-level commands(scoop, arm, linear velocity, angular velocity) to Mbed 
 Also accepts speed values from Mbed for each wheel, and publishes to the wheel_speed topic. 
 '''
 
+ROS_SLEEP_RATE = 10
+MBED_VENDOR_ID = 0x1234
+MBED_PRODUCT_ID = 0x0006
 ######################################
 #Topic Variables
 ######################################
@@ -24,6 +27,9 @@ DRIVE_TOPIC = "/cmd_vel"
 SCOOP_TOPIC = "/cmd_scoop"   
 WHEEL_SPEED_TOPIC = "/wheel_speed"
 
+# handler called when a report is received
+def rx_handler(data):
+    print 'recv: ', data
 
 class MbedInterface(object):
     def __init__(self):
@@ -33,9 +39,12 @@ class MbedInterface(object):
         self.__cmd_vel = Twist()
         self.__cmd_scoop = scoopControl()
         self.__wheel_data = wheelData()
-
-        rospy.Subscriber(DRIVE_TOPIC, Twist,   cmd_vel_callback)
-        rospy.Subscriber(SCOOP_TOPIC, scoopControl, cmd_scoop_callback)
+        
+        ######################################
+        # Setup ROS publishers
+        ######################################
+        rospy.Subscriber(DRIVE_TOPIC, Twist, self.cmd_vel_callback)
+        rospy.Subscriber(SCOOP_TOPIC, scoopControl, self.cmd_scoop_callback)
 
 
         ######################################
@@ -44,7 +53,7 @@ class MbedInterface(object):
         self.wheel_speed_pub = rospy.Publisher(WHEEL_SPEED_TOPIC, Twist, queue_size = 10)
 
         # Find device
-        self.__hid_device = usb.core.find(idVendor=mbed_vendor_id,idProduct=mbed_product_id)
+        self.__hid_device = usb.core.find(idVendor=MBED_VENDOR_ID,idProduct=MBED_PRODUCT_ID)
     
         if not self.__hid_device:
             print "No device connected"
@@ -74,12 +83,26 @@ class MbedInterface(object):
 
     #Sends data recieved from Mbed over a topic(wheelData)
     def mbed_recieve_handler(self, data):
-        print "Received data from Mbed."
+        print "Mbed Recv: ", data
 
 
 
     def run(self):
-        rospy.spin()
+        while not rospy.is_shutdown():
+            rate = rospy.Rate(ROS_SLEEP_RATE)
+            data = [0x0] * 8
+                        
+            #read the data
+            bytes = self.__hid_device.read(self.__endpoint.bEndpointAddress, 8, timeout=5000)
+            self.mbed_recieve_handler(bytes)
+        
+            for i in range(8):
+                data[i] = bytes[i]
+            
+
+            self.__hid_device.write(1, data)
+        
+            rate.sleep()
 
 
 
