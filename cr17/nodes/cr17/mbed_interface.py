@@ -35,6 +35,11 @@ MBED_PRODUCT_ID = 0x0006
 # 4 bits for fraction + 3 bits for integer + 1 bit for sign = 8 bits!!! ()
 FRAC_BIT_WIDTH = 4
 INT_BIT_WIDTH = 3
+
+SIGN_BYTE = 0b10000000
+
+UPPER_LIMIT = 7.9
+LOWER_LIMIT = -7.9
 ######################################
 #Topic Variables
 ######################################
@@ -116,14 +121,48 @@ class MbedInterface(object):
 
     #Converts float to fixed point(represented as an 8 byte int) based of the scheme described in the wiki.
     def float_to_fixed_point(self, float_val):
-        fixed_val = int(round(float_val * 2**FRAC_BIT_WIDTH))
+
+        #Raises an error if values are out of the limts of what this unibyte encoding can handle
+        if (float_val > UPPER_LIMIT) | (float_val < LOWER_LIMIT):
+            raise ValueError("float_val is out of range of UPPER_LIMIT or LOWER_LIMIT")
+
+            #Sets float_val to the bounds
+            if (float_val > UPPER_LIMIT):
+                float_val = UPPER_LIMIT
+            else:
+                float_val = LOWER_LIMIT
+
+        if float_val < 0.0:
+            fixed_prime = int(round(abs(float_val) * 2**FRAC_BIT_WIDTH))
+            fixed_val = fixed_prime | SIGN_BYTE #Sets the MSb to one indicatng a negative val
+        else:
+            fixed_val = int(round(abs(float_val) * 2**FRAC_BIT_WIDTH))
 
         return fixed_val
 
 
     #Converts fixed point(represented as an 8 byte int) based of the scheme described in the wiki.
-    def fixed_point_to_float(self, data):
-        print "Stuff"
+    def fixed_point_to_float(self, fixed_val):
+        #If a value greater than 255 is received then this single byte encoding scheme won't work.
+        if fixed_val > 255:
+            raise ValueError("fixed_val: higher than 255")
+
+        #The MSb determines if it is positive or negative, hence being greater than 128 tells the sign(pos = 0, neg = 1)
+        if fixed_val > 128:
+            is_neg = True
+        else: 
+            is_neg = False
+
+        int_val = (fixed_val & 0b01110000) >> 4
+        decimal_val = (fixed_val & 0b00001111) * 2**-4
+
+        float_val = int_val + decimal_val
+
+        if is_neg:
+            float_val *= -1
+
+        return float_val
+
 
 
 
@@ -144,5 +183,5 @@ class MbedInterface(object):
 
 
 if __name__ == "__main__":
-	mbedInterface = MbedInterface()
-	mbedInterface.run()
+    mbedInterface = MbedInterface()
+    mbedInterface.run()
