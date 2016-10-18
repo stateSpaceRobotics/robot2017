@@ -17,13 +17,23 @@ Sends low-level commands(scoop, arm, linear velocity, angular velocity) to Mbed 
 Also accepts speed values from Mbed for each wheel, and publishes to the wheel_speed topic. 
 '''
 
-##Mbed Send Package Description(8 bytes)
+##Send to MBed Package Description(8 bytes)
 #0 CMD_Vel: Z-Angular
 #1 CMD_Vel: X-inear
-#2 Scoop  : Arm-Angular
-#3 Scoop  : Scoop-Angular
-#4 Unused :
-#5 Unused :
+#2 Scoop  : Arm-Angle-MSB
+#3 Scoop  : Arm-ANgle-LSB
+#4 Unused : Scoop-Angle-MSB
+#5 Unused : Scooop-Angle-LSB
+#6 Unused :
+#7 Unused :
+
+##Receive from MBed Package Description(8 bytes)
+#0 wheelData :  FrntLVel 
+#1 wheelData :  FrntRVel
+#2 wheelData :  BackLVel
+#3 wheelData :  BackRVel
+#4 Unused : 
+#5 Unused : 
 #6 Unused :
 #7 Unused :
 
@@ -42,7 +52,7 @@ SINGLE_BYTE_UPPER_LIMIT = 7.9
 SINGLE_BYTE_LOWER_LIMIT = -7.9
 
 DOUBLE_BYTE_UPPER_LIMIT = 512.9375 #Max value possible bits using 9 bits for the int, 4 bits for the decimals
-DOUBLE_BYTE_LOWER_LIMIT = 0.0 #Since there was no need to include a sign bit, so there isn't one
+DOUBLE_BYTE_LOWER_LIMIT = 0.0      #There was no need to include a sign bit, so there isn't one
 ######################################
 #Topic Variables
 ######################################
@@ -111,12 +121,20 @@ class MbedInterface(object):
     #Add new scoop cmd to USB message(arm velocity/scoop velocity)
     def cmd_scoop_callback(self, scoop_msg):
         print "Received scoopControl from ", SCOOP_TOPIC
-        self.__data[2] = self.float_to_fixed_point(scoop_msg.armVelAngular)
-        self.__data[3] = self.float_to_fixed_point(scoop_msg.scoopVelAngular)
+        self.__data[2], self.__data[3] = self.float_to_fixed_point_2(scoop_msg.armVelAngular)
+        self.__data[4], self.__data[5] = self.float_to_fixed_point_2(scoop_msg.scoopVelAngular)
 
     #Sends data recieved from Mbed over a topic(wheelData)
     def mbed_recieve_handler(self, data):
-        print "Mbed Recv: ", data
+
+        #publish out all the received MBED data
+        self.__wheel_data.frontLeftVel  = self.fixed_to_float(data[0])
+        self.__wheel_data.frontRightVel = self.fixed_to_float(data[1])
+        self.__wheel_data.backLeftVel   = self.fixed_to_float(data[2])  
+        self.__wheel_data.backRightVel  = self.fixed_to_float(data[3])
+
+        self.wheel_speed_pub.publish(self.__wheel_data)
+        
 
     ######################################
     # Needed Functions
@@ -175,7 +193,7 @@ class MbedInterface(object):
 
 
     #Converts fixed point(represented as an 8 byte int) based of the scheme described in the wiki.
-    def fixed_point_to_float(self, fixed_val):
+    def fixed_to_float(self, fixed_val):
         #If a value greater than 255 is received then this single byte encoding scheme won't work.
         if fixed_val > 255:
             raise ValueError("fixed_val: higher than 255")
