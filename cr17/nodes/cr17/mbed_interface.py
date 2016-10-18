@@ -84,7 +84,7 @@ class MbedInterface(object):
         ######################################
         # Setup ROS publishers
         ######################################
-        self.wheel_speed_pub = rospy.Publisher(WHEEL_SPEED_TOPIC, Twist, queue_size = 10)
+        self.wheel_speed_pub = rospy.Publisher(WHEEL_SPEED_TOPIC, wheelData, queue_size = 10)
 
         # Find device
         self.__hid_device = usb.core.find(idVendor=MBED_VENDOR_ID,idProduct=MBED_PRODUCT_ID)
