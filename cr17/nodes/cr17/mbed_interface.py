@@ -38,8 +38,11 @@ INT_BIT_WIDTH = 3
 
 SIGN_BYTE = 0b10000000
 
-UPPER_LIMIT = 7.9
-LOWER_LIMIT = -7.9
+SINGLE_BYTE_UPPER_LIMIT = 7.9
+SINGLE_BYTE_LOWER_LIMIT = -7.9
+
+DOUBLE_BYTE_UPPER_LIMIT = 512.9375 #Max value possible bits using 9 bits for the int, 4 bits for the decimals
+DOUBLE_BYTE_LOWER_LIMIT = 0.0 #Since there was no need to include a sign bit, so there isn't one
 ######################################
 #Topic Variables
 ######################################
@@ -119,18 +122,48 @@ class MbedInterface(object):
     # Needed Functions
     ######################################
 
+    def fixed_to_float_2(self, int_MSB, int_LSB):
+
+        fixed_val = (int_MSB << 5) | int_LSB
+        #If a value greater than 8192 is received then this double byte encoding scheme won't work.
+        if fixed_val > 2**13:
+            raise ValueError("fixed_val: higher than 8192")
+
+        float_val = fixed_val* 2**-FRAC_BIT_WIDTH
+
+        return float_val
+
+    #Converts float to fixed point(represented in 2 bytes) based of the scheme described in the wiki.
+    def float_to_fixed_point_2(self, float_val):
+
+        if (float_val > DOUBLE_BYTE_UPPER_LIMIT) | (float_val < DOUBLE_BYTE_LOWER_LIMIT):
+            raise ValueError("Out of range for unsigned double byte implementation: > 512.9375 or < 0.0")
+
+            #Sets float_val to the bounds
+            if (float_val > DOUBLE_BYTE_UPPER_LIMIT):
+                float_val = DOUBLE_BYTE_UPPER_LIMIT
+            else:
+                float_val = SINGLE_BYTE_LOWER_LIMIT
+
+        fixed_val = fixed_val = int(round(float_val * 2**FRAC_BIT_WIDTH))
+        MSB = fixed_val >> 5
+        LSB = fixed_val & 0b0000000011111
+
+        return MSB, LSB
+
+
     #Converts float to fixed point(represented as an 8 byte int) based of the scheme described in the wiki.
     def float_to_fixed_point(self, float_val):
 
         #Raises an error if values are out of the limts of what this unibyte encoding can handle
-        if (float_val > UPPER_LIMIT) | (float_val < LOWER_LIMIT):
-            raise ValueError("float_val is out of range of UPPER_LIMIT or LOWER_LIMIT")
+        if (float_val > SINGLE_BYTE_UPPER_LIMIT) | (float_val < SINGLE_BYTE_LOWER_LIMIT):
+            raise ValueError("Out of range for signed single byte implementation: > 7.9 or < -7.9")
 
             #Sets float_val to the bounds
-            if (float_val > UPPER_LIMIT):
-                float_val = UPPER_LIMIT
+            if (float_val > SINGLE_BYTE_UPPER_LIMIT):
+                float_val = SINGLE_BYTE_UPPER_LIMIT
             else:
-                float_val = LOWER_LIMIT
+                float_val = SINGLE_BYTE_LOWER_LIMIT
 
         if float_val < 0.0:
             fixed_prime = int(round(abs(float_val) * 2**FRAC_BIT_WIDTH))
@@ -154,7 +187,7 @@ class MbedInterface(object):
             is_neg = False
 
         int_val = (fixed_val & 0b01110000) >> 4
-        decimal_val = (fixed_val & 0b00001111) * 2**-4
+        decimal_val = (fixed_val & 0b00001111) * 2.0**-4
 
         float_val = int_val + decimal_val
 
@@ -184,4 +217,4 @@ class MbedInterface(object):
 
 if __name__ == "__main__":
     mbedInterface = MbedInterface()
-    mbedInterface.run()
+    print mbedInterface.run()
