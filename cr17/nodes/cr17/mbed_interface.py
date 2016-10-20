@@ -15,6 +15,8 @@ import random
 '''
 Sends low-level commands(scoop, arm, linear velocity, angular velocity) to Mbed over USB.
 Also accepts speed values from Mbed for each wheel, and publishes to the wheel_speed topic. 
+
+This node must be run under su privelages. I've been doing it using sudo su, then the command to run the node.
 '''
 
 ##Send to MBed Package Description(8 bytes)
@@ -51,8 +53,8 @@ SIGN_BYTE = 0b10000000
 SINGLE_BYTE_UPPER_LIMIT = 7.9
 SINGLE_BYTE_LOWER_LIMIT = -7.9
 
-DOUBLE_BYTE_UPPER_LIMIT = 512.9375 #Max value possible bits using 9 bits for the int, 4 bits for the decimals
-DOUBLE_BYTE_LOWER_LIMIT = 0.0      #There was no need to include a sign bit, so there isn't one
+DOUBLE_BYTE_UPPER_LIMIT = 512.9375 #Max value possible bits using 9 bits for the int, 4 bits for the decimals(although this is the theoretical limit I wouldn't go above 512.9)
+DOUBLE_BYTE_LOWER_LIMIT = 0.0      #There was no need to include a sign bit(its an angle in this case), so the lower limit is zero
 ######################################
 #Topic Variables
 ######################################
@@ -75,17 +77,18 @@ class MbedInterface(object):
         self.__bytes = None
         
         ######################################
-        # Setup ROS publishers
+        # Setup ROS Subscribers for this node
         ######################################
         rospy.Subscriber(DRIVE_TOPIC, Twist, self.cmd_vel_callback)
         rospy.Subscriber(SCOOP_TOPIC, scoopControl, self.cmd_scoop_callback)
 
 
         ######################################
-        # Setup ROS publishers
+        # Setup ROS Publishers for this node
         ######################################
         self.wheel_speed_pub = rospy.Publisher(WHEEL_SPEED_TOPIC, wheelData, queue_size = 10)
-
+        
+        #This sets up the code for the USB. I'm not 100% what it all does. 
         # Find device
         self.__hid_device = usb.core.find(idVendor=MBED_VENDOR_ID,idProduct=MBED_PRODUCT_ID)
     
@@ -114,13 +117,13 @@ class MbedInterface(object):
 
     #Add new cmd_vel to USB message(x-linear/z-angular)
     def cmd_vel_callback(self, twist_msg):
-        print "Received Twist from ", DRIVE_TOPIC
+        #print "Received Twist from ", DRIVE_TOPIC
         self.__data[0] = self.float_to_fixed_point(twist_msg.angular.z)
         self.__data[1] = self.float_to_fixed_point(twist_msg.linear.x)
 
     #Add new scoop cmd to USB message(arm velocity/scoop velocity)
     def cmd_scoop_callback(self, scoop_msg):
-        print "Received scoopControl from ", SCOOP_TOPIC
+        #print "Received scoopControl from ", SCOOP_TOPIC
         self.__data[2], self.__data[3] = self.float_to_fixed_point_2(scoop_msg.armVelAngular)
         self.__data[4], self.__data[5] = self.float_to_fixed_point_2(scoop_msg.scoopVelAngular)
 
@@ -128,11 +131,14 @@ class MbedInterface(object):
     def mbed_recieve_handler(self, data):
 
         #publish out all the received MBED data
+
+        #Sets up wheelData message
         self.__wheel_data.frontLeftVel  = self.fixed_to_float(data[0])
         self.__wheel_data.frontRightVel = self.fixed_to_float(data[1])
         self.__wheel_data.backLeftVel   = self.fixed_to_float(data[2])  
         self.__wheel_data.backRightVel  = self.fixed_to_float(data[3])
-
+        
+        #publishes wheelData message to topic
         self.wheel_speed_pub.publish(self.__wheel_data)
         
 
@@ -140,6 +146,7 @@ class MbedInterface(object):
     # Needed Functions
     ######################################
 
+    #Converts two ints used into a floating point value. The implementation is described in the wiki.
     def fixed_to_float_2(self, int_MSB, int_LSB):
 
         fixed_val = (int_MSB << 5) | int_LSB
