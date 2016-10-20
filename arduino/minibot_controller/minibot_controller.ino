@@ -198,8 +198,8 @@ void setup() {
   Serial1.println("...Done.");
 
   // Set Pin interrupts
-  attachInterrupt(ENC_LEFT_A, l_pin_chng, RISING);
-  attachInterrupt(ENC_RIGHT_A, r_pin_chng, RISING);
+  attachInterrupt(ENC_LEFT_A, l_pin_chng, CHANGE);
+  attachInterrupt(ENC_RIGHT_A, r_pin_chng, CHANGE);
   Serial1.println("Encoder pin interrupts enabled...");
 }
 
@@ -278,21 +278,26 @@ void sample_Vels() {
   oldLPos = newLPos;
   Serial1.print(lEncVal); Serial1.print(":::"); Serial1.println(rEncVal);
 }
+
 void l_pin_chng() {
-  // Triggers on rising A, so A is HIGH
-  int encoded = 0b10 | digitalRead(ENC_LEFT_B);
+  // Triggers on A change
+  if(digitalRead(ENC_LEFT_A) & digitalRead(ENC_LEFT_B)){
+    lEncVal --;
+  }else{
+    lEncVal ++;
+  }
 
-  int sum = ( lEncVal << 2 ) | encoded;
-
-  if(sum == 0b1101 || sum == 0b0100 || sum == 0b0010 || sum == 0b1011) lEncVal ++;
-  if(sum == 0b1110 || sum == 0b0111 || sum == 0b0001 || sum == 0b1000) lEncVal --;
-
-  lEncVal = encoded;
 }
 
 void r_pin_chng() {
-  // Triggers on rising A, so A is HIGH
-  int encoded = 0b10 | digitalRead(ENC_RIGHT_B);
+  // Triggers on A change
+  if(digitalRead(ENC_LEFT_A) & digitalRead(ENC_LEFT_B)){
+    rEncVal --;
+  }else{
+    rEncVal ++;
+  }
+/*
+  int encoded = (digitalRead(ENC_RIGHT_A)<<1) | digitalRead(ENC_RIGHT_B);
 
   int sum = ( rEncVal << 2 ) | encoded;
 
@@ -300,5 +305,6 @@ void r_pin_chng() {
   if(sum == 0b1110 || sum == 0b0111 || sum == 0b0001 || sum == 0b1000) rEncVal --;
 
   rEncVal = encoded;
+*/
 }
 
