@@ -62,6 +62,85 @@ DRIVE_TOPIC = "/cmd_vel"
 SCOOP_TOPIC = "/cmd_scoop"   
 WHEEL_SPEED_TOPIC = "/wheel_speed"
 
+######################################
+# Needed Functions
+######################################
+
+#Converts two ints used into a floating point value. The implementation is described in the wiki.
+def fixed_to_float_2(int_MSB, int_LSB):
+
+    fixed_val = (int_MSB << 5) | int_LSB
+    #If a value greater than 8192 is received then this double byte encoding scheme won't work.
+    if fixed_val > 2**13:
+        raise ValueError("fixed_val: higher than 8192")
+
+    float_val = fixed_val* 2**-FRAC_BIT_WIDTH
+
+    return float_val
+
+#Converts float to fixed point(represented in 2 bytes) based of the scheme described in the wiki.
+def float_to_fixed_point_2(float_val):
+
+    if (float_val > DOUBLE_BYTE_UPPER_LIMIT) | (float_val < DOUBLE_BYTE_LOWER_LIMIT):
+        raise ValueError("Out of range for unsigned double byte implementation: > 512.9375 or < 0.0")
+
+        #Sets float_val to the bounds
+        if (float_val > DOUBLE_BYTE_UPPER_LIMIT):
+            float_val = DOUBLE_BYTE_UPPER_LIMIT
+        else:
+            float_val = SINGLE_BYTE_LOWER_LIMIT
+
+    fixed_val = fixed_val = int(round(float_val * 2**FRAC_BIT_WIDTH))
+    MSB = fixed_val >> 5
+    LSB = fixed_val & 0b0000000011111
+
+    return MSB, LSB
+
+
+#Converts float to fixed point(represented as an 8 byte int) based of the scheme described in the wiki.
+def float_to_fixed_point(float_val):
+
+    #Raises an error if values are out of the limts of what this unibyte encoding can handle
+    if (float_val > SINGLE_BYTE_UPPER_LIMIT) | (float_val < SINGLE_BYTE_LOWER_LIMIT):
+        raise ValueError("Out of range for signed single byte implementation: > 7.9 or < -7.9")
+
+        #Sets float_val to the bounds
+        if (float_val > SINGLE_BYTE_UPPER_LIMIT):
+            float_val = SINGLE_BYTE_UPPER_LIMIT
+        else:
+            float_val = SINGLE_BYTE_LOWER_LIMIT
+
+    if float_val < 0.0:
+        fixed_prime = int(round(abs(float_val) * 2**FRAC_BIT_WIDTH))
+        fixed_val = fixed_prime | SIGN_BYTE #Sets the MSb to one indicatng a negative val
+    else:
+        fixed_val = int(round(abs(float_val) * 2**FRAC_BIT_WIDTH))
+
+    return fixed_val
+
+
+#Converts fixed point(represented as an 8 byte int) based of the scheme described in the wiki.
+def fixed_to_float(fixed_val):
+    #If a value greater than 255 is received then this single byte encoding scheme won't work.
+    if fixed_val > 255:
+        raise ValueError("fixed_val: higher than 255")
+
+    #The MSb determines if it is positive or negative, hence being greater than 128 tells the sign(pos = 0, neg = 1)
+    if fixed_val > 128:
+        is_neg = True
+    else: 
+        is_neg = False
+
+    int_val = (fixed_val & 0b01110000) >> 4
+    decimal_val = (fixed_val & 0b00001111) * 2.0**-4
+
+    float_val = int_val + decimal_val
+
+    if is_neg:
+        float_val *= -1
+
+    return float_val
+
 
 class MbedInterface(object):
     def __init__(self):
@@ -118,14 +197,14 @@ class MbedInterface(object):
     #Add new cmd_vel to USB message(x-linear/z-angular)
     def cmd_vel_callback(self, twist_msg):
         #print "Received Twist from ", DRIVE_TOPIC
-        self.__data[0] = self.float_to_fixed_point(twist_msg.angular.z)
-        self.__data[1] = self.float_to_fixed_point(twist_msg.linear.x)
+        self.__data[0] = float_to_fixed_point(twist_msg.angular.z)
+        self.__data[1] = float_to_fixed_point(twist_msg.linear.x)
 
     #Add new scoop cmd to USB message(arm velocity/scoop velocity)
     def cmd_scoop_callback(self, scoop_msg):
         #print "Received scoopControl from ", SCOOP_TOPIC
-        self.__data[2], self.__data[3] = self.float_to_fixed_point_2(scoop_msg.armVelAngular)
-        self.__data[4], self.__data[5] = self.float_to_fixed_point_2(scoop_msg.scoopVelAngular)
+        self.__data[2], self.__data[3] = float_to_fixed_point_2(scoop_msg.armVelAngular)
+        self.__data[4], self.__data[5] = float_to_fixed_point_2(scoop_msg.scoopVelAngular)
 
     #Sends data recieved from Mbed over a topic(wheelData)
     def mbed_recieve_handler(self, data):
@@ -133,96 +212,14 @@ class MbedInterface(object):
         #publish out all the received MBED data
 
         #Sets up wheelData message
-        self.__wheel_data.frontLeftVel  = self.fixed_to_float(data[0])
-        self.__wheel_data.frontRightVel = self.fixed_to_float(data[1])
-        self.__wheel_data.backLeftVel   = self.fixed_to_float(data[2])  
-        self.__wheel_data.backRightVel  = self.fixed_to_float(data[3])
+        self.__wheel_data.frontLeftVel  = fixed_to_float(data[0])
+        self.__wheel_data.frontRightVel = fixed_to_float(data[1])
+        self.__wheel_data.backLeftVel   = fixed_to_float(data[2])  
+        self.__wheel_data.backRightVel  = fixed_to_float(data[3])
         
         #publishes wheelData message to topic
         self.wheel_speed_pub.publish(self.__wheel_data)
         
-
-    ######################################
-    # Needed Functions
-    ######################################
-
-    #Converts two ints used into a floating point value. The implementation is described in the wiki.
-    def fixed_to_float_2(self, int_MSB, int_LSB):
-
-        fixed_val = (int_MSB << 5) | int_LSB
-        #If a value greater than 8192 is received then this double byte encoding scheme won't work.
-        if fixed_val > 2**13:
-            raise ValueError("fixed_val: higher than 8192")
-
-        float_val = fixed_val* 2**-FRAC_BIT_WIDTH
-
-        return float_val
-
-    #Converts float to fixed point(represented in 2 bytes) based of the scheme described in the wiki.
-    def float_to_fixed_point_2(self, float_val):
-
-        if (float_val > DOUBLE_BYTE_UPPER_LIMIT) | (float_val < DOUBLE_BYTE_LOWER_LIMIT):
-            raise ValueError("Out of range for unsigned double byte implementation: > 512.9375 or < 0.0")
-
-            #Sets float_val to the bounds
-            if (float_val > DOUBLE_BYTE_UPPER_LIMIT):
-                float_val = DOUBLE_BYTE_UPPER_LIMIT
-            else:
-                float_val = SINGLE_BYTE_LOWER_LIMIT
-
-        fixed_val = fixed_val = int(round(float_val * 2**FRAC_BIT_WIDTH))
-        MSB = fixed_val >> 5
-        LSB = fixed_val & 0b0000000011111
-
-        return MSB, LSB
-
-
-    #Converts float to fixed point(represented as an 8 byte int) based of the scheme described in the wiki.
-    def float_to_fixed_point(self, float_val):
-
-        #Raises an error if values are out of the limts of what this unibyte encoding can handle
-        if (float_val > SINGLE_BYTE_UPPER_LIMIT) | (float_val < SINGLE_BYTE_LOWER_LIMIT):
-            raise ValueError("Out of range for signed single byte implementation: > 7.9 or < -7.9")
-
-            #Sets float_val to the bounds
-            if (float_val > SINGLE_BYTE_UPPER_LIMIT):
-                float_val = SINGLE_BYTE_UPPER_LIMIT
-            else:
-                float_val = SINGLE_BYTE_LOWER_LIMIT
-
-        if float_val < 0.0:
-            fixed_prime = int(round(abs(float_val) * 2**FRAC_BIT_WIDTH))
-            fixed_val = fixed_prime | SIGN_BYTE #Sets the MSb to one indicatng a negative val
-        else:
-            fixed_val = int(round(abs(float_val) * 2**FRAC_BIT_WIDTH))
-
-        return fixed_val
-
-
-    #Converts fixed point(represented as an 8 byte int) based of the scheme described in the wiki.
-    def fixed_to_float(self, fixed_val):
-        #If a value greater than 255 is received then this single byte encoding scheme won't work.
-        if fixed_val > 255:
-            raise ValueError("fixed_val: higher than 255")
-
-        #The MSb determines if it is positive or negative, hence being greater than 128 tells the sign(pos = 0, neg = 1)
-        if fixed_val > 128:
-            is_neg = True
-        else: 
-            is_neg = False
-
-        int_val = (fixed_val & 0b01110000) >> 4
-        decimal_val = (fixed_val & 0b00001111) * 2.0**-4
-
-        float_val = int_val + decimal_val
-
-        if is_neg:
-            float_val *= -1
-
-        return float_val
-
-
-
 
     def run(self):
         while not rospy.is_shutdown():
