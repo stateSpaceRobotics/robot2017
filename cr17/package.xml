@@ -50,6 +50,8 @@
   <run_depend>gray_transceiver</run_depend>
   <run_depend>joy</run_depend>
 
+  <test_depend>rosunit</test_depend>
+
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>
