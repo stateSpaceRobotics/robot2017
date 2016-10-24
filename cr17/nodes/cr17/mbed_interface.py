@@ -53,7 +53,7 @@ SIGN_BYTE = 0b10000000
 SINGLE_BYTE_UPPER_LIMIT = 7.9
 SINGLE_BYTE_LOWER_LIMIT = -7.9
 
-DOUBLE_BYTE_UPPER_LIMIT = 512.9375 #Max value possible bits using 9 bits for the int, 4 bits for the decimals(although this is the theoretical limit I wouldn't go above 512.9)
+DOUBLE_BYTE_UPPER_LIMIT = 511.9      # 2^13 * 2^FRAC_BIT_WIDTH
 DOUBLE_BYTE_LOWER_LIMIT = 0.0      #There was no need to include a sign bit(its an angle in this case), so the lower limit is zero
 ######################################
 #Topic Variables
@@ -69,20 +69,31 @@ WHEEL_SPEED_TOPIC = "/wheel_speed"
 #Converts two ints used into a floating point value. The implementation is described in the wiki.
 def fixed_to_float_2(int_MSB, int_LSB):
 
-    fixed_val = (int_MSB << 5) | int_LSB
-    #If a value greater than 8192 is received then this double byte encoding scheme won't work.
-    if fixed_val > 2**13:
-        raise ValueError("fixed_val: higher than 8192")
+    #Makes sure both fixed val inputs are ints
+    if ((type(int_MSB) != int) | (type(int_LSB) != int)):
+        raise TypeError
+    
+    #Makes sure the fixed value uses only 13 bits, and sticks to the correct scheme
+    if ((int_MSB > 255) | ( int_LSB > 31)):
+        raise ValueError
 
-    float_val = fixed_val* 2**-FRAC_BIT_WIDTH
+    if ((int_MSB < 0) | (int_LSB < 0)):
+        raise ValueError
+
+    fixed_val = (int_MSB << 5) | int_LSB #Shifts 5 bits and or with LSB to get a 13 bit int/fixed val
+
+    float_val = fixed_val* 2.0**-FRAC_BIT_WIDTH
 
     return float_val
 
 #Converts float to fixed point(represented in 2 bytes) based of the scheme described in the wiki.
 def float_to_fixed_point_2(float_val):
 
+    if(type(float_val) != float):
+        raise TypeError
+
     if (float_val > DOUBLE_BYTE_UPPER_LIMIT) | (float_val < DOUBLE_BYTE_LOWER_LIMIT):
-        raise ValueError("Out of range for unsigned double byte implementation: > 512.9375 or < 0.0")
+        raise ValueError("Out of range for unsigned double byte implementation: > 511.9 or < 0.0")
 
         #Sets float_val to the bounds
         if (float_val > DOUBLE_BYTE_UPPER_LIMIT):
@@ -99,6 +110,9 @@ def float_to_fixed_point_2(float_val):
 
 #Converts float to fixed point(represented as an 8 byte int) based of the scheme described in the wiki.
 def float_to_fixed_point(float_val):
+    #Test to make sure input type is float
+    if(type(float_val) != float):
+        raise TypeError
 
     #Raises an error if values are out of the limts of what this unibyte encoding can handle
     if (float_val > SINGLE_BYTE_UPPER_LIMIT) | (float_val < SINGLE_BYTE_LOWER_LIMIT):
@@ -121,6 +135,11 @@ def float_to_fixed_point(float_val):
 
 #Converts fixed point(represented as an 8 byte int) based of the scheme described in the wiki.
 def fixed_to_float(fixed_val):
+
+    #Test to make sure input is an int
+    if(type(fixed_val) != int):
+        raise TypeError
+
     #If a value greater than 255 is received then this single byte encoding scheme won't work.
     if fixed_val > 255:
         raise ValueError("fixed_val: higher than 255")
