@@ -87,7 +87,7 @@ def fixed_to_float_2(int_MSB, int_LSB):
     return float_val
 
 #Converts float to fixed point(represented in 2 bytes) based of the scheme described in the wiki.
-def float_to_fixed_point_2(float_val):
+def float_to_fixed_2(float_val):
 
     if(type(float_val) != float):
         raise TypeError
@@ -109,7 +109,7 @@ def float_to_fixed_point_2(float_val):
 
 
 #Converts float to fixed point(represented as an 8 byte int) based of the scheme described in the wiki.
-def float_to_fixed_point(float_val):
+def float_to_fixed(float_val):
     #Test to make sure input type is float
     if(type(float_val) != float):
         raise TypeError
@@ -216,14 +216,14 @@ class MbedInterface(object):
     #Add new cmd_vel to USB message(x-linear/z-angular)
     def cmd_vel_callback(self, twist_msg):
         #print "Received Twist from ", DRIVE_TOPIC
-        self.__data[0] = float_to_fixed_point(twist_msg.angular.z)
-        self.__data[1] = float_to_fixed_point(twist_msg.linear.x)
+        self.__data[0] = float_to_fixed(twist_msg.angular.z)
+        self.__data[1] = float_to_fixed(twist_msg.linear.x)
 
     #Add new scoop cmd to USB message(arm velocity/scoop velocity)
     def cmd_scoop_callback(self, scoop_msg):
         #print "Received scoopControl from ", SCOOP_TOPIC
-        self.__data[2], self.__data[3] = float_to_fixed_point_2(scoop_msg.armVelAngular)
-        self.__data[4], self.__data[5] = float_to_fixed_point_2(scoop_msg.scoopVelAngular)
+        self.__data[2], self.__data[3] = float_to_fixed_2(scoop_msg.armVelAngular)
+        self.__data[4], self.__data[5] = float_to_fixed_2(scoop_msg.scoopVelAngular)
 
     #Sends data recieved from Mbed over a topic(wheelData)
     def mbed_recieve_handler(self, data):

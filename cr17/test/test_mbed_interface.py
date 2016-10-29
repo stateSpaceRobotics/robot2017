@@ -57,13 +57,13 @@ class TestMbedInterface(unittest.TestCase):
     #=============================#
 
     def test_float_input_2(self):
-        self.assertRaises(TypeError, mbed_interface.float_to_fixed_point_2, 100)
+        self.assertRaises(TypeError, mbed_interface.float_to_fixed_2, 100)
 
     def test_float_input_upper_limit(self):
-        self.assertRaises(ValueError, mbed_interface.float_to_fixed_point_2, 512.0)
+        self.assertRaises(ValueError, mbed_interface.float_to_fixed_2, 512.0)
 
     def test_float_input_lower_limit(self):
-        self.assertRaises(ValueError, mbed_interface.float_to_fixed_point_2, -1.0)
+        self.assertRaises(ValueError, mbed_interface.float_to_fixed_2, -1.0)
 
     def test_float_input_fixed_output_pairs_2(self):
         input_output_pairs = (
@@ -75,7 +75,7 @@ class TestMbedInterface(unittest.TestCase):
                              (511.9, 255, 31)
                              )
         for float_val, MSB, LSB in input_output_pairs:
-            return_MSB, return_LSB = mbed_interface.float_to_fixed_point_2(float_val)
+            return_MSB, return_LSB = mbed_interface.float_to_fixed_2(float_val)
             self.assertAlmostEqual(return_LSB, LSB, delta = 1)
             self.assertAlmostEqual(return_MSB, MSB, delta = 1)
 
@@ -121,24 +121,24 @@ class TestMbedInterface(unittest.TestCase):
     #Makes sure a float is passed in
     def test_float_only_input(self):
         for s in (240, 40, 0):
-            self.assertRaises(TypeError, mbed_interface.float_to_fixed_point, s)
+            self.assertRaises(TypeError, mbed_interface.float_to_fixed, s)
 
     #Test for upper/lower out of range error
     def test_float_input_upper_limit_rejection(self):
-        self.assertRaises(ValueError, mbed_interface.float_to_fixed_point, 8.0)
+        self.assertRaises(ValueError, mbed_interface.float_to_fixed, 8.0)
     
     def test_float_input_lower_limit_rejection(self):
-        self.assertRaises(ValueError, mbed_interface.float_to_fixed_point, -8.0)
+        self.assertRaises(ValueError, mbed_interface.float_to_fixed, -8.0)
     
     #Test for making sure negative #'s are greater than 128'
     def test_fixed_output_is_negative(self):
         for s in (-7.0, -5.0, -2.5, -0.1):
-            self.assertGreater(mbed_interface.float_to_fixed_point(s), 128)
+            self.assertGreater(mbed_interface.float_to_fixed(s), 128)
 
     #Test for making sure pos. #'s are less than 128'
     def test_fixed_output_is_positive(self):
         for s in (7.0, 5.0, 2.5, 0.1, 0.001):
-            self.assertLess(mbed_interface.float_to_fixed_point(s), 128)
+            self.assertLess(mbed_interface.float_to_fixed(s), 128)
     
     def test_float_input_fixed_output_pairs(self):
         input_output_pairs = (
@@ -153,7 +153,7 @@ class TestMbedInterface(unittest.TestCase):
                       (7.9, 126),
                       (-7.9, 254))
         for input_float, output_int in input_output_pairs:
-            self.assertEqual(mbed_interface.float_to_fixed_point(input_float), output_int)
+            self.assertEqual(mbed_interface.float_to_fixed(input_float), output_int)
 
 
 
