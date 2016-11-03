@@ -16,7 +16,7 @@ import random
 Sends low-level commands(scoop, arm, linear velocity, angular velocity) to Mbed over USB.
 Also accepts speed values from Mbed for each wheel, and publishes to the wheel_speed topic. 
 
-This node must be run under su privelages. I've been doing it using sudo su, then the command to run the node.
+This node must be run under su privelages. I've been doing it using sudo su, then the command to run the node. 
 '''
 
 ##Send to MBed Package Description(8 bytes)
@@ -39,22 +39,55 @@ This node must be run under su privelages. I've been doing it using sudo su, the
 #6 Unused :
 #7 Unused :
 
+DATA_ARRAY_SIZE = 8
+
 ROS_SLEEP_RATE = 10
 
-MBED_VENDOR_ID = 0x1234
+MBED_VENDOR_ID  = 0x1234
 MBED_PRODUCT_ID = 0x0006
 
-# 4 bits for fraction + 3 bits for integer + 1 bit for sign = 8 bits!!! ()
+
+###Single Byte Implementation Constants##
+# 4 bits for fraction + 3 bits for integer + 1 bit for sign = 8 bits
 FRAC_BIT_WIDTH = 4
-INT_BIT_WIDTH = 3
 
-SIGN_BYTE = 0b10000000
+SIGN_BYTE = 0b10000000      #Used to designae the sign of the float(the MSb decides whether it is pos or neg)
 
-SINGLE_BYTE_UPPER_LIMIT = 7.9
-SINGLE_BYTE_LOWER_LIMIT = -7.9
+#Float upper and lowewr limits
+SINGLE_BYTE_FLOAT_UPPER_LIMIT = 7.9
+SINGLE_BYTE_FLOAT_LOWER_LIMIT = -7.9
 
-DOUBLE_BYTE_UPPER_LIMIT = 511.9      # 2^13 * 2^FRAC_BIT_WIDTH
-DOUBLE_BYTE_LOWER_LIMIT = 0.0      #There was no need to include a sign bit(its an angle in this case), so the lower limit is zero
+#Signle Byte upper and lower limts
+BYTE_UPPER_LIMIT = 255
+BYTE_LOWER_LIMIT = 0
+
+#Used with a bitwise AND operation to seperate the bits designating the integer portion of the float and the bits representing the fraction
+INT_BITS_AND     = 0b01110000
+FRAC_BITS_AND    = 0b00001111
+
+#Used to make room/take away for the fractional bits
+INT_BITS_SHIFT = 4
+
+###Two Byte Implementation Constants###
+
+#TWO Byte float upper/lower limits
+TWO_BYTE_FLOAT_UPPER_LIMIT = 511.9      # 2^13 * 2^FRAC_BIT_WIDTH
+TWO_BYTE_FLOAT_LOWER_LIMIT = 0.0  
+
+#The upper limts of the MSB and the LSB      
+MSB_UPPER_LIMIT     = 255
+LSB_UPPER_LIMIT     = 31
+
+#The lower limts of the MSB and the LSB 
+MSB_LOWER_LIMIT     = 0
+LSB_LOWER_LIMIT     = 0
+
+#USed to shift MSB around
+MSB_SHIFT           = 5
+
+#Used to isolate the LSB
+LSB_AND             = 0b0000000011111 
+
 ######################################
 #Topic Variables
 ######################################
@@ -74,13 +107,13 @@ def fixed_to_float_2(int_MSB, int_LSB):
         raise TypeError
     
     #Makes sure the fixed value uses only 13 bits, and sticks to the correct scheme
-    if ((int_MSB > 255) | ( int_LSB > 31)):
-        raise ValueError
+    if ((int_MSB > MSB_UPPER_LIMIT) | ( int_LSB > LSB_UPPER_LIMIT)):
+        raise ValueError("One of the two bytes is too large a value.")
 
-    if ((int_MSB < 0) | (int_LSB < 0)):
-        raise ValueError
+    if ((int_MSB < MSB_LOWER_LIMIT) | (int_LSB < LSB_LOWER_LIMIT)):
+        raise ValueError("One of the two bytes is too small a value.")
 
-    fixed_val = (int_MSB << 5) | int_LSB #Shifts 5 bits and or with LSB to get a 13 bit int/fixed val
+    fixed_val = (int_MSB << MSB_SHIFT) | int_LSB #Shifts int_MSB by MSB_RIGHT_SHIFT in order to make room for the LSB portion
 
     float_val = fixed_val* 2.0**-FRAC_BIT_WIDTH
 
@@ -92,20 +125,14 @@ def float_to_fixed_2(float_val):
     if(type(float_val) != float):
         raise TypeError
 
-    if (float_val > DOUBLE_BYTE_UPPER_LIMIT) | (float_val < DOUBLE_BYTE_LOWER_LIMIT):
-        raise ValueError("Out of range for unsigned double byte implementation: > 511.9 or < 0.0")
-
-        #Sets float_val to the bounds
-        if (float_val > DOUBLE_BYTE_UPPER_LIMIT):
-            float_val = DOUBLE_BYTE_UPPER_LIMIT
-        else:
-            float_val = SINGLE_BYTE_LOWER_LIMIT
+    if (float_val > TWO_BYTE_FLOAT_UPPER_LIMIT) | (float_val < TWO_BYTE_FLOAT_LOWER_LIMIT):
+        raise ValueError("Out of range for unsigned two byte implementation: > 511.9 or < 0.0")
 
     fixed_val = fixed_val = int(round(float_val * 2**FRAC_BIT_WIDTH))
-    MSB = fixed_val >> 5
-    LSB = fixed_val & 0b0000000011111
+    int_MSB = fixed_val >> MSB_SHIFT
+    int_LSB = fixed_val & LSB_AND
 
-    return MSB, LSB
+    return int_MSB, int_LSB
 
 
 #Converts float to fixed point(represented as an 8 byte int) based of the scheme described in the wiki.
@@ -115,14 +142,8 @@ def float_to_fixed(float_val):
         raise TypeError
 
     #Raises an error if values are out of the limts of what this unibyte encoding can handle
-    if (float_val > SINGLE_BYTE_UPPER_LIMIT) | (float_val < SINGLE_BYTE_LOWER_LIMIT):
+    if (float_val > SINGLE_BYTE_FLOAT_UPPER_LIMIT) | (float_val < SINGLE_BYTE_FLOAT_LOWER_LIMIT):
         raise ValueError("Out of range for signed single byte implementation: > 7.9 or < -7.9")
-
-        #Sets float_val to the bounds
-        if (float_val > SINGLE_BYTE_UPPER_LIMIT):
-            float_val = SINGLE_BYTE_UPPER_LIMIT
-        else:
-            float_val = SINGLE_BYTE_LOWER_LIMIT
 
     if float_val < 0.0:
         fixed_prime = int(round(abs(float_val) * 2**FRAC_BIT_WIDTH))
@@ -141,8 +162,8 @@ def fixed_to_float(fixed_val):
         raise TypeError
 
     #If a value greater than 255 is received then this single byte encoding scheme won't work.
-    if fixed_val > 255:
-        raise ValueError("fixed_val: higher than 255")
+    if (fixed_val > BYTE_UPPER_LIMIT) | (fixed_val < BYTE_LOWER_LIMIT):
+        raise ValueError("Value is higher/lower than the single byte limits(0 or 255)")
 
     #The MSb determines if it is positive or negative, hence being greater than 128 tells the sign(pos = 0, neg = 1)
     if fixed_val > 128:
@@ -150,13 +171,13 @@ def fixed_to_float(fixed_val):
     else: 
         is_neg = False
 
-    int_val = (fixed_val & 0b01110000) >> 4
-    decimal_val = (fixed_val & 0b00001111) * 2.0**-4
+    int_val = (fixed_val & INT_BITS_AND) >> INT_BITS_SHIFT
+    decimal_val = (fixed_val & FRAC_BITS_AND) * 2.0**-4
 
     float_val = int_val + decimal_val
 
     if is_neg:
-        float_val *= -1
+        float_val = -float_val
 
     return float_val
 
@@ -171,7 +192,7 @@ class MbedInterface(object):
         self.__wheel_data = wheelData()
 
         #Raw data list(byte array?) to/from the Mbed
-        self.__data = [0x0] * 8  #Initializes bytes to be set to zero
+        self.__data = [0x0] * DATA_ARRAY_SIZE  #Initializes bytes to be set to zero
         self.__bytes = None
         
         ######################################
@@ -186,7 +207,7 @@ class MbedInterface(object):
         ######################################
         self.wheel_speed_pub = rospy.Publisher(WHEEL_SPEED_TOPIC, wheelData, queue_size = 10)
         
-        #This sets up the code for the USB. I'm not 100% what it all does. 
+        #This sets up the code for the USB. I'm not 100% what it all does, but it works and is entirely based off the example. 
         # Find device
         self.__hid_device = usb.core.find(idVendor=MBED_VENDOR_ID,idProduct=MBED_PRODUCT_ID)
     
