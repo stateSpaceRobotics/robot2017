@@ -14,21 +14,25 @@
 #include <pcl/filters/project_inliers.h>
 #include <pcl/common/impl/eigen.hpp>
 #include <pcl/segmentation/extract_clusters.h>
+#include <ros/console.h>
 
 pcl::PointCloud<pcl::PointXYZ> processData();
 
-bool newData = false;
+bool working = false;
 pcl::PCLPointCloud2* cloud = new pcl::PCLPointCloud2;
 
 ros::Publisher pub;
 void cloud_input(const sensor_msgs::PointCloud2ConstPtr& input)
 {
 	pcl_conversions::toPCL(*input, *cloud);
-	newData = true;
-	//pcl::PointCloud<pcl::PointXYZ> data = processData();
-	//sensor_msgs::PointCloud2 output;
-	//pcl::toROSMsg(data,output);
-	//pub.publish(output);
+	if(!working){
+		working = true;
+		pcl::PointCloud<pcl::PointXYZ> data = processData();
+		sensor_msgs::PointCloud2 output;
+		pcl::toROSMsg(data,output);
+		pub.publish(output);
+		working = false;
+	}
 }
 
 pcl::PointCloud<pcl::PointXYZ> processData()
@@ -114,21 +118,13 @@ int main(int argc, char ** argv)
 	ros::init(argc,argv,"plane_detector");
 	ros::NodeHandle nh;
 
-	pub = nh.advertise<sensor_msgs::PointCloud2>("obstacles", 1);
+	pub = nh.advertise<sensor_msgs::PointCloud2>("obstacles", 10);
 
-	ros::Subscriber sub = nh.subscribe("cloud", 1, cloud_input);
+	ros::Subscriber sub = nh.subscribe("cloud", 10, cloud_input);
+
 
 	while(ros::ok())
 	{
-		if(newData)
-		{
-			newData = false;
-			pcl::PointCloud<pcl::PointXYZ> data = processData();
-			sensor_msgs::PointCloud2 output;
-			pcl_conversions::fromPCL(*cloud,output);
-			pcl::toROSMsg(data,output);
-			pub.publish(output);
-		}
 		ros::spin();
 	}
 

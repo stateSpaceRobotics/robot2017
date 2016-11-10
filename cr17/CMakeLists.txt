@@ -144,8 +144,6 @@ add_executable(cr17_node2 nodes/cr17/object_tester.cc)
 target_link_libraries(cr17_node ${catkin_LIBRARIES})
 target_link_libraries(cr17_node2 ${catkin_LIBRARIES})
 
-add_executable(cr17_node3 nodes/cr17/object_detector.cc)
-target_link_libraries(cr17_node3 ${catkin_LIBRARIES})
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
