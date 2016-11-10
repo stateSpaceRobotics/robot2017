@@ -49,6 +49,7 @@
   <run_depend>std_msgs</run_depend>
   <run_depend>gray_transceiver</run_depend>
   <run_depend>joy</run_depend>
+  <run_depend>python-usb</run_depend>
 
   <test_depend>rosunit</test_depend>
 
