@@ -5,9 +5,10 @@ from cr17.msg import wheelData, scoopControl
 
 import os
 import sys
- 
-import usb.core
-import usb.util
+
+#IMPORTANT!! These must be uncommented to work with the Mbed. Only uncommented for Travis-CLI testing
+#import usb.core
+#import usb.util
  
 from time import sleep
 import random
