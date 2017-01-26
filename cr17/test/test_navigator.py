@@ -1,4 +1,5 @@
 #!/usr/bin/env python2
+
 PKG='cr17'
 NAME='test_navigator'
 
@@ -81,8 +82,39 @@ class TestNavigator(unittest.TestCase):
         self.assertListAlmostEqual([-0.929,-0.929], navigator.calc_goal_force(goalBackRight, robotPose), 3)
 
     def test_calc_repulsive_force(self):
-        self.assertTrue(True) #TODO: fill out
+        obstacle1 = [0,0.4]
+        obstacle2 = [0,-0.4]
+        obstacle3 = [0.4,0]
+        obstacle4 = [-0.4,0]
 
+        robotPose = Pose()
+        robotPose.position.x = 0
+        robotPose.position.y = 0
+
+        self.assertListAlmostEqual([0,-0.11], navigator.calc_repulsive_force([obstacle1],robotPose))
+        self.assertListAlmostEqual([0,0.11], navigator.calc_repulsive_force([obstacle2],robotPose))
+        self.assertListAlmostEqual([-0.11,0], navigator.calc_repulsive_force([obstacle3],robotPose))
+        self.assertListAlmostEqual([0.11,0], navigator.calc_repulsive_force([obstacle4],robotPose))
+
+        self.assertListAlmostEqual([0,-0.22], navigator.calc_repulsive_force([obstacle1, obstacle1],robotPose))
+        self.assertListAlmostEqual([0,0], navigator.calc_repulsive_force([obstacle1, obstacle2],robotPose))
+        self.assertListAlmostEqual([-0.11,-0.11], navigator.calc_repulsive_force([obstacle1, obstacle3],robotPose))
+        self.assertListAlmostEqual([0.11,-0.11], navigator.calc_repulsive_force([obstacle1, obstacle4],robotPose))
+
+        self.assertListAlmostEqual([0,0], navigator.calc_repulsive_force([obstacle2, obstacle1],robotPose))
+        self.assertListAlmostEqual([0, 0.22], navigator.calc_repulsive_force([obstacle2, obstacle2],robotPose))
+        self.assertListAlmostEqual([-0.11, 0.11], navigator.calc_repulsive_force([obstacle2, obstacle3],robotPose))
+        self.assertListAlmostEqual([0.11, 0.11], navigator.calc_repulsive_force([obstacle2, obstacle4],robotPose))
+        
+        self.assertListAlmostEqual([-0.11,-0.11], navigator.calc_repulsive_force([obstacle3, obstacle1],robotPose))
+        self.assertListAlmostEqual([-0.11, 0.11], navigator.calc_repulsive_force([obstacle3, obstacle2],robotPose))
+        self.assertListAlmostEqual([-0.22, 0], navigator.calc_repulsive_force([obstacle3, obstacle3],robotPose))
+        self.assertListAlmostEqual([0,0], navigator.calc_repulsive_force([obstacle3, obstacle4],robotPose))
+
+        self.assertListAlmostEqual([0.11,-0.11], navigator.calc_repulsive_force([obstacle4, obstacle1],robotPose))
+        self.assertListAlmostEqual([0.11, 0.11], navigator.calc_repulsive_force([obstacle4, obstacle2],robotPose))
+        self.assertListAlmostEqual([0,0], navigator.calc_repulsive_force([obstacle4, obstacle3],robotPose))
+        self.assertListAlmostEqual([0.22, 0], navigator.calc_repulsive_force([obstacle4, obstacle4],robotPose))
 
 
 if __name__ == '__main__':

@@ -283,7 +283,6 @@ class PFieldNavigator(object):
     def _transform_for_ryan(self, ang_vel, lin_vel):
         '''
         Given angular velocity and linear velocity, transform for ryan (-7, 7)
-        Contact: Ryan Smith, (228) 623 - 9492
         '''
         # Normalize, then multiply by seven
         mag = math.sqrt(ang_vel**2 + lin_vel**2)
