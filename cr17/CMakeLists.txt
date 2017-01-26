@@ -140,9 +140,7 @@ include_directories(
 # add_executable(cr17_node src/cr17_node.cpp)
 
 add_executable(cr17_node nodes/cr17/plane_detector_node.cc)
-add_executable(cr17_node2 nodes/cr17/object_tester.cc)
 target_link_libraries(cr17_node ${catkin_LIBRARIES})
-target_link_libraries(cr17_node2 ${catkin_LIBRARIES})
 
 
 ## Add cmake target dependencies of the executable
