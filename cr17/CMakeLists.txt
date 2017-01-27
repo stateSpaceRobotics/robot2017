@@ -201,9 +201,15 @@ endif()
 include_directories(include ${catkin_INCLUDE_DIRS})
 add_executable(transform_inverter src/transform_inverter.cpp)
 target_link_libraries(transform_inverter ${catkin_LIBRARIES})
+
 add_executable(turtle_teleop_joy src/turtle_teleop_joy.cpp)
 target_link_libraries(turtle_teleop_joy ${catkin_LIBRARIES})
+
 add_executable(plane_detector src/plane_detector.cpp)
 target_link_libraries(plane_detector ${catkin_LIBRARIES})
 
 #add_dependencies(transform_inverter )
+
+# Build aruco pose publisher
+add_executable(aruco_pose src/aruco_pose_reporter.cpp)
+target_link_libraries(aruco_pose ${catkin_LIBRARIES})
