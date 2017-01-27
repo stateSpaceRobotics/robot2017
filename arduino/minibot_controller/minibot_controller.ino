@@ -22,29 +22,38 @@
 #include <WiFiUdp.h>
 #include <PID_v1.h>
 
-// servo pwm pin, 4 IS PLACEHOLDER
-#define SERVO_PWM_PIN 4
+// pin assignments
+#define SERVO_PWM_PIN 14
+#define ENC_LEFT_A 4
+#define ENC_LEFT_B 5
+#define ENC_RIGHT_A 12
+#define ENC_RIGHT_B 13
 
 #define ETX '\r'
 #define STX 'B'
 
 //Robot Physical Paramaters
-#define wheel_radius 2.0
-#define robot_width  1.0
+#define WHEEL_RADIUS 2.0
+#define ROBOT_WIDTH  1.0
+#define ENC_CPR 768
 
 //Output limits for PID. The second motor is set to proper range before sending to motor driver(see function send_to_motor_driver() for details)
-#define min_out 1.0
-#define max_out 128.0
+#define MIN_OUTPUT 1.0
+#define MAX_OUTPUT 128.0
 
 // Using Netstrings format: length:msg,
 // MSG format: "{LIN}:{ANG}:{SERVO_ANG}"
 const char* host_name = "Minibot_ESP";
-const char* ssid = "SSID Here";
-const char* password = "PASS Here";
+const char* ssid = "EISM";
+const char* password = "starsrobot213";
 
+// UDP info
 WiFiUDP port;
 char packetBuffer[255];
 unsigned int localPort = 9999;
+
+// Command values
+float cmd_lin_vel, cmd_ang_vel, cmd_servo_ang;
 
 //PID Tuning Paramaters
 double Kp = 1.0, Ki = 0.0, Kd = 0.0;
@@ -54,27 +63,33 @@ double v_right_setpoint;
 double v_left_setpoint;
 
 //Measured velocities of the motors
-double v_right_input;
-double v_left_input;
+double v_right_input = 0;
+double v_left_input = 0;
 
 //Output Values to be sent to the Sabertooth
-double right_output_value;
-double left_output_value;
+double right_output_value = 64;
+double left_output_value = 64;
 
+// Encoder velocity variables
+volatile long rEncVal = 0;
+volatile long lEncVal = 0;
+long newLPos, newRPos;
+long oldLPos = 0;
+long oldRPos = 0;
+unsigned long curTime;
+unsigned long pastTime = 0;
 
 //Set up Left PID
 PID Left_PID(&v_left_input, &left_output_value, &v_left_setpoint, Kp, Ki, Kd, DIRECT);
-
  //Set up Right PID
 PID Right_PID(&v_right_input, &right_output_value, &v_right_setpoint, Kp, Ki, Kd, DIRECT);
-
 
 
 //Combines the linear velocity and angular velocity into individual velocities for the left/right motor
 void convert_to_linear(float ang_vel, float lin_vel, double& v_right, double& v_left){
 
-    v_right = ((2.0*lin_vel) + (ang_vel*robot_width))/(2.0*wheel_radius);
-    v_left  = ((2.0*lin_vel) - (ang_vel*robot_width))/(2.0*wheel_radius);    
+    v_right = ((2.0*lin_vel) + (ang_vel*ROBOT_WIDTH))/(2.0*WHEEL_RADIUS);
+    v_left  = ((2.0*lin_vel) - (ang_vel*ROBOT_WIDTH))/(2.0*WHEEL_RADIUS);    
 
 }
 
@@ -93,13 +108,14 @@ void send_to_motor_driver(){
   int right_output_int = (int)right_output_value;
   int left_output_int  = (int)left_output_value;
 
-  byte right_output_byte = (byte)right_output_value;
-  byte left_output_byte  = (byte)left_output_value;
+  byte right_output_byte = (byte)right_output_int;
+  byte left_output_byte  = (byte)left_output_int;
 
   //Sets MSb of second motor
   left_output_byte = 0x80 | left_output_byte;
 
   //Sends values over serial to the Sabertooth
+  Serial1.print(right_output_byte); Serial1.print("::"); Serial1.println(left_output_byte);
   Serial.write(right_output_byte);
   Serial.write(left_output_byte);
 
@@ -109,26 +125,26 @@ void send_to_motor_driver(){
 void Motor_Setup(){
 
   //Set output limits
-  Left_PID.SetOutputLimits(min_out, max_out);
+  Left_PID.SetOutputLimits(MIN_OUTPUT, MAX_OUTPUT);
 
   Left_PID.SetMode(AUTOMATIC); //Turns PID On
 
 
   //Set output limits
-  Right_PID.SetOutputLimits(min_out, max_out);
+  Right_PID.SetOutputLimits(MIN_OUTPUT, MAX_OUTPUT);
 
   Right_PID.SetMode(AUTOMATIC); //Turns PID On
 }
 
-void Motor_Update(float ang_vel, float lin_vel){
+void Motor_Update(){
 
 
   //Convert angular + linear velocity commands to individual left/right velocity setpoints
-  convert_to_linear(ang_vel, lin_vel, v_right_setpoint, v_left_setpoint);
+  convert_to_linear(cmd_ang_vel, cmd_lin_vel, v_right_setpoint, v_left_setpoint);
     
   //Get/Set Input Varaible Values(Presumably from motor encoders) This should assign v_(right/left)_input in terms of a velocty(m/s)
   
-  //===============to be filled in=================//
+  sample_Vels();
 
   //Compute Right/Left PID Output Values
 
@@ -143,8 +159,18 @@ void Motor_Update(float ang_vel, float lin_vel){
 
 
 void setup() {
-  // Initialize PWM pin, TODO: Verify pin mode correct!
+  // Initialize pins
+  pinMode(ENC_LEFT_A, INPUT);
+  pinMode(ENC_LEFT_B, INPUT);
+  pinMode(ENC_RIGHT_A, INPUT);
+  pinMode(ENC_RIGHT_B, INPUT);
   pinMode(SERVO_PWM_PIN, OUTPUT);
+
+  // enable pullups
+  digitalWrite(ENC_LEFT_A, HIGH);
+  digitalWrite(ENC_LEFT_B, HIGH);
+  digitalWrite(ENC_RIGHT_A, HIGH);
+  digitalWrite(ENC_RIGHT_B, HIGH);
 
   // Debug Serial
   Serial1.begin(115200);
@@ -159,7 +185,7 @@ void setup() {
   // open UDP port
   port.begin(localPort);
   //start main Serial
-  Serial.begin(115200);
+  Serial.begin(38400);
   // Debug Serial
   Serial1.print("Ready!  IP: ");
   Serial1.print(WiFi.localIP());
@@ -171,6 +197,10 @@ void setup() {
   Motor_Setup();
   Serial1.println("...Done.");
 
+  // Set Pin interrupts
+  attachInterrupt(ENC_LEFT_A, l_pin_chng, CHANGE);
+  attachInterrupt(ENC_RIGHT_A, r_pin_chng, CHANGE);
+  Serial1.println("Encoder pin interrupts enabled...");
 }
 
 void parse_cmd(int len)
@@ -179,7 +209,6 @@ void parse_cmd(int len)
   int j = 0;
   char val[32];
   char current;
-  float lin, ang, servo_ang;
 
   // parse linear
   while (packetBuffer[i] != ':'){
@@ -188,7 +217,7 @@ void parse_cmd(int len)
     i++;
   }
   val[j] = '\0';
-  lin = atof(val);
+  cmd_lin_vel = atof(val);
   i++;
   val[i] = '\0';
   
@@ -200,7 +229,7 @@ void parse_cmd(int len)
     i++;
   }
   val[j] = '\0';
-  ang = atof(val);
+  cmd_ang_vel = atof(val);
   i++;
   val[i] = '\0';
 
@@ -210,21 +239,17 @@ void parse_cmd(int len)
     j++;
   }
   val[j] = '\0';
-  servo_ang = atof(val);
+  cmd_servo_ang = atof(val);
   
   // clear buffer
   packetBuffer[0] = '\0';
   
   // Debug output
   Serial1.println("Command parsed!");
-
-  // Call PID/Servo Control Here
-  Motor_Update(ang, lin);
 }
 
 void loop() {
   int packetSize = port.parsePacket();
-
   if (packetSize) {
     int len = port.read(packetBuffer, 255);
     // Sets ending flag in buffer
@@ -237,6 +262,49 @@ void loop() {
     port.write(packetBuffer);
     parse_cmd(len);
   }
-
+  
+  Motor_Update();
   delay(25);
 }
+
+void sample_Vels() {
+  newLPos = lEncVal;
+  newRPos = rEncVal;
+  curTime = millis();
+  v_right_input = ( newRPos - oldRPos ) * 1000.0 / ( curTime - pastTime ) / ENC_CPR * WHEEL_RADIUS ; // m/sec
+  v_left_input = ( newLPos - oldLPos ) * 1000.0 / ( curTime - pastTime ) / ENC_CPR * WHEEL_RADIUS ; // m/sec
+  pastTime = curTime;
+  oldRPos = newRPos;
+  oldLPos = newLPos;
+  Serial1.print(lEncVal); Serial1.print(":::"); Serial1.println(rEncVal);
+}
+
+void l_pin_chng() {
+  // Triggers on A change
+  if(digitalRead(ENC_LEFT_A) & digitalRead(ENC_LEFT_B)){
+    lEncVal --;
+  }else{
+    lEncVal ++;
+  }
+
+}
+
+void r_pin_chng() {
+  // Triggers on A change
+  if(digitalRead(ENC_LEFT_A) & digitalRead(ENC_LEFT_B)){
+    rEncVal --;
+  }else{
+    rEncVal ++;
+  }
+/*
+  int encoded = (digitalRead(ENC_RIGHT_A)<<1) | digitalRead(ENC_RIGHT_B);
+
+  int sum = ( rEncVal << 2 ) | encoded;
+
+  if(sum == 0b1101 || sum == 0b0100 || sum == 0b0010 || sum == 0b1011) rEncVal ++;
+  if(sum == 0b1110 || sum == 0b0111 || sum == 0b0001 || sum == 0b1000) rEncVal --;
+
+  rEncVal = encoded;
+*/
+}
+
