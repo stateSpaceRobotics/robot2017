@@ -5,7 +5,7 @@ import rospy, math
 from geometry_msgs.msg import PoseStamped, Twist, Pose
 from sensor_msgs.msg import Joy
 from std_msgs.msg import Float64, Bool
-from nav_msgs.msg import Path
+from nav_msgs.msg import Path, Odometry
 
 
 CUR_ARM_ANGLE_TOPIC = rospy.get_param("topics/cur_arm_angle", "current_arm_angle")
@@ -125,6 +125,7 @@ class high_level_state_controller(object):
     def path_sub(self, data):
         self.pathPoses = data.poses
 
+    
     def linAngVelFromSkidSteer(self, left, right):
         x = (right+left)*WHEEL_RADIUS/2
         z = (right-left)*WHEEL_RADIUS/WHEEL_SEPARATION
