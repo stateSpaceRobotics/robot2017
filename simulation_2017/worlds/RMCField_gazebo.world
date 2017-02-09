@@ -112,7 +112,7 @@
       <static>1</static>
       <pose>0 0 0 0 0 0</pose>
     </model>
-    <model name="leftBeacoPost">
+    <model name="leftBeaconPost">
       <!--<pose>0.739775 0 0.8 0 -0 0</pose>-->
       <!--<pose>0.3048 0 0.8 0 0 0</pose>-->
       <!--<pose>0.3048 0 0.8 0 -0 0</pose>-->
@@ -144,7 +144,7 @@
       </link>
       <static>1</static>
     </model>
-    <model name="rightBeacoPost">
+    <model name="rightBeaconPost">
       <!--<pose>-0.739775 0 0.8 0 -0 0</pose>-->
       <!--<pose>0.9144 0 0.8 0 0 0</pose>-->
       <!--<pose>-0.3048 0 0.8 0 -0 0</pose>-->
