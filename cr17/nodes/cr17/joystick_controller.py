@@ -3,6 +3,7 @@ import rospy, math
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import Joy
 from std_msgs.msg import Int16, String
+from cr17.srv import autonomousActive
 
 '''
 This module is used to convert joystick messages into appropriate affector commands.
@@ -55,14 +56,12 @@ class Joystick_Controller(object):
 
         self.controller_state = Joy()
 
-        self.prev_drive_state = Twist()
-
         self.teleopEnabled = None
         self.teleopButton_prev = 0
         if START_IN_TELEOP:
-            self.endTeleop()
-        else:
             self.startTeleop()
+        else:
+            self.endTeleop()
 
         # Load topic names
         self.joystick_topic       = rospy.get_param("topics/joystick", "joy")
@@ -138,15 +137,10 @@ class Joystick_Controller(object):
             lin_hist_avg = sum(lin_history) / len(lin_history)
             vel_hist_avg = sum(vel_history) / len(vel_history)
 
-            # mag = math.sqrt(lin_hist_avg**2 + vel_hist_avg**2)
-            # if mag != 0:
-            #     twister.linear.x = (lin_hist_avg / mag) * MAX_MAG
-            #     twister.angular.z = (vel_hist_avg / mag) * MAX_MAG
-            twister.linear.x = lin_hist_avg
-            twister.angular.z = vel_hist_avg
-            #if (twister.linear.x != self.prev_drive_state.linear.x) or (twister.angular.z != self.prev_drive_state.angular.z):
-            self.drive_pub.publish(twister)
-            self.prev_drive_state = twister
+            twister.linear.x = lin_hist_avg     #reduce sudden changes
+            twister.angular.z = vel_hist_avg    #reduce sudden changes
+            if self.teleopEnabled:
+                self.drive_pub.publish(twister)
 
             self.joy_received = False
             rate.sleep()
