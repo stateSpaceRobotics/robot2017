@@ -139,10 +139,6 @@ include_directories(
 ## Declare a C++ executable
 # add_executable(cr17_node src/cr17_node.cpp)
 
-add_executable(cr17_node nodes/cr17/plane_detector_node.cc)
-target_link_libraries(cr17_node ${catkin_LIBRARIES})
-
-
 ## Add cmake target dependencies of the executable
 ## same as for the library above
 # add_dependencies(cr17_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
