@@ -17,5 +17,6 @@
   <node name="high_level_state_controller" pkg="cr17" type="high_level_state_controller.py">
     <remap from="/filtered_pose" to="/robot/standard_pose" />
   </node>
+  <node name="path_pub" pkg="cr17" type="path_pub.py"/>
   <node name="magic_odomFromGazebo" pkg="simulation_2017" type="magic_odomFromGazebo.py"/>
 </launch>
