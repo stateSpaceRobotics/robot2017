@@ -72,11 +72,11 @@ class Joystick_Controller(object):
         rospy.Subscriber(self.joystick_topic, Joy, self.joy_callback)
 
     def startTeleop(self):
-        #TODO: call the serives from navigator, scoop_controller, and the HLSC
+        #TODO: call the services from navigator, scoop_controller, and the HLSC
         self.teleopEnabled = True
 
     def endTeleop(self):
-        #TODO: call the serives from navigator, scoop_controller, and the HLSC
+        #TODO: call the services from navigator, scoop_controller, and the HLSC
         self.teleopEnabled = False
 
     def joy_callback(self, data):
