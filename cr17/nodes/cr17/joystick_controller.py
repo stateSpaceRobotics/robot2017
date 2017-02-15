@@ -145,12 +145,6 @@ class Joystick_Controller(object):
             self.joy_received = False
             rate.sleep()
 
-    def _exit_handler(self):
-        '''
-        This function is called on exit 
-        '''
-        exit()
-
 if __name__ == "__main__":
     controller = Joystick_Controller()
     controller.run()
