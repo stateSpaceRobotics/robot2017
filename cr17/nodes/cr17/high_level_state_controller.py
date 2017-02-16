@@ -5,7 +5,7 @@ import rospy, math
 from geometry_msgs.msg import PoseStamped, Twist, Pose
 from std_msgs.msg import Float64, Bool
 from nav_msgs.msg import Path
-from cr17.msgs import scoopControl
+from cr17.msg import scoopControl
 
 
 ARM_STATE_TOPIC = rospy.get_param("topics/scoop_state_cmds", "scoop_commands")
