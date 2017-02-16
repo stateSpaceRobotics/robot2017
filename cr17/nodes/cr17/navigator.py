@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 import rospy, signal, atexit, math
 from geometry_msgs.msg import Twist, Point, PoseStamped, Pose
@@ -20,7 +20,7 @@ GOAL_THRESH         = 0.1       # radius around goal that it's okay to stop in
 ######################################
 # Load global topic names from ros params
 ######################################
-DRIVE_TOPIC = rospy.get_param("topics/drive_cmds_pfield", "cmd_vel_pfield")
+DRIVE_TOPIC = rospy.get_param("topics/drive_cmds", "cmd_vel")
 GOAL_TOPIC = rospy.get_param("topics/navigation_goals", "nav_goal")
 ROBOPOSE_TOPIC = rospy.get_param("topics/particleFilter_pose_out", "beacon_localization_pose")
 BEACON_LOST_TOPIC = rospy.get_param("topics/beacon_lost", "beacon_lost")

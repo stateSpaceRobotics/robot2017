@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 import rospy, signal, atexit, math, time, tf
 from sensor_msgs.msg import LaserScan

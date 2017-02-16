@@ -1,12 +1,10 @@
 topics:
     beacon_lost: beacon_lost                                # ROS Bool msgs, true if beacon lost
     lidar_beacon_points: lidar_beacon_points                #
-    cur_arm_angle: current_arm_angle                        #
-    des_arm_angle: desired_arm_angle                        #
-    hand_state: hand_state                                  #
+    scoop_state_cmds: scoop_commands                        # cr17 scoopControl msgs, desired state for the scoop
+    scoop_cmds: cmds_scoop                                  # The angles to move the scoop arms too
     drive_cmds: cmd_vel                                     # ROS Twist msgs, twist cmds for movement
     command: cmd_vel                                        # ROS Twist msgs, twist cmds for movement
-    drive_cmds_pfield: cmd_vel_pfield                       # ROS Twist msgs, twist cmds for movement from the potential field node
     path: obstacle_path                                     #
     navigation_goals: nav_goal                              # ROS Point msgs, navigation goal
     joystick: joy                                           # ROS Joy msgs, msgs from controller

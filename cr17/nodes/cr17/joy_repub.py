@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 import rospy
 import socket
@@ -7,8 +7,6 @@ import json
 import subprocess
 import roslib.message
 from sensor_msgs.msg import Joy
-from rospy_message_converter import message_converter, json_message_converter
-# from gray_transceiver.msg import GxRequest, GxMetaTopic
 
 
 MCAST_GRP = '224.1.1.1'
@@ -28,15 +26,9 @@ class joy_repubber(object):
     def __init__(self):
         rospy.init_node("joy_repubber")
         self.joy_pub = rospy.Publisher("joy", Joy, queue_size = 10)
-        # rospy.Subscriber("gray_transceiver/metatopic", GxMetaTopic, self.meta_sub)
-        # self.subscribers = []
 
-        # self.request_pub = rospy.Publisher("gray_transceiver/requests", GxRequest, queue_size=10)
         print("starting socket")
-        # self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-        # self.sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 3)
-        # self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        # self.sock.bind((MCAST_GRP, int(PORT)))
+
 
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         self.sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 3)
@@ -48,31 +40,16 @@ class joy_repubber(object):
         self.sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_LOOP, 0)
 
         print("opened socket")
-    # def joy_sub(self, data):
-    #     self.joy_pub.publish(data)
-
-    # def meta_sub(self, data):
-    #     self.thisRobotName = data.myName
-    #     if(data.type == "sensor_msgs/Joy"):
-    #         self.subscribers.append(rospy.Subscriber(data.name, Joy, self.joy_sub))
-
 
     def run(self):
         rate = rospy.Rate(10)
-        # for each in range(0,10):
-        #     message = GxRequest()
-        #     message.description = "joy"
-        #     message.type = "sensor_msgs/Joy"
-        #     self.request_pub.publish(message)
-        #     rate.sleep()
-        # rospy.spin()
         maxsize = 65535
         print("about to loop")
         while not rospy.is_shutdown():
             try:
                 data2, addr = self.sock.recvfrom(maxsize)
-                message = json.loads(data2)
-                data = message_converter.convert_dictionary_to_ros_message("sensor_msgs/Joy", message)
+                data = Joy()
+                data.deserialize(data2)
             except socket.error, e:
                 print 'Exception'
                 continue

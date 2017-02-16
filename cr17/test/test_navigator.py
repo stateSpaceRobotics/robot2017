@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 PKG='cr17'
 NAME='test_navigator'
 

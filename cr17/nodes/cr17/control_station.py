@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 import rospy
 import socket
@@ -7,8 +7,7 @@ import json
 import subprocess
 import roslib.message
 from sensor_msgs.msg import Joy
-from rospy_message_converter import message_converter, json_message_converter
-from sensor_msgs.msg import Joy
+import StringIO
 
 
 MCAST_GRP = '224.1.1.1'
@@ -46,12 +45,10 @@ class control_station(object):
 
         rate = rospy.Rate(10)
         while not rospy.is_shutdown():
-            # self.joy_pub.publish(self.joy)
-            baseMsg = message_converter.convert_ros_message_to_dictionary(self.joy)
-            self.sock.sendto(json.dumps(baseMsg), (MCAST_GRP, int(PORT)))
+            baseMsg = StringIO.StringIO()
+            self.joy.serialize(baseMsg)
+            self.sock.sendto(baseMsg.getvalue(), (MCAST_GRP, int(PORT)))
             rate.sleep()
-
-            # rospy.spin()
 
 
 if __name__ == "__main__":
