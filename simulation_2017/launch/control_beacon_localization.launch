@@ -35,7 +35,9 @@
   <node name="navigator" pkg="cr17" type="navigator.py">
     <remap from="cmd_vel" to="r2d2_diff_drive_controller/cmd_vel"/>
   </node>
-  <node name="beacon_localization" pkg="cr17" type="beacon_localization.py"/>
+  <node name="beacon_localization" pkg="cr17" type="beacon_localization.py">
+    <remap from="base_scan" to="scan"/>
+  </node>
   
 
 </launch>
