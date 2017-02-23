@@ -3,7 +3,7 @@
 import rospy, math
 
 from geometry_msgs.msg import PoseStamped, Twist, Pose
-from std_msgs.msg import Float64, Bool
+from std_msgs.msg import Float64, Bool, String
 from nav_msgs.msg import Path
 from cr17.msg import scoopControl
 
@@ -12,6 +12,7 @@ ARM_STATE_TOPIC = rospy.get_param("topics/scoop_state_cmds", "scoop_commands")
 POSE_TOPIC = rospy.get_param("topics/filtered_pose", "filtered_pose")
 PATH_TOPIC = rospy.get_param("topics/path", "/obstacle_path")
 GOAL_TOPIC = rospy.get_param("topics/navigation_goals", "nav_goal") #TODO: might need to be renamed
+STATE_TOPIC = rospy.get_param("topics/robot_state", "state")
 MINING_DISTANCE = rospy.get_param("distance_to_mine", 1.5)
 
 Y_IN_DUMP_RANGE = 0.01
@@ -37,6 +38,7 @@ class high_level_state_controller(object):
 
         self.arm_pub = rospy.Publisher(ARM_STATE_TOPIC, scoopControl, queue_size=10)
         self.goal_pub = rospy.Publisher(GOAL_TOPIC, PoseStamped, queue_size=10) #TODO: change to a Path
+        self.state_pub = rospy.Publisher(STATE_TOPIC, String, queue_size=10)
 
         rospy.Subscriber(POSE_TOPIC, PoseStamped, self.pose_sub)
         self.pose = Pose()
@@ -216,7 +218,6 @@ class high_level_state_controller(object):
             ######################################################################################################
 
             #advance the autostate
-            print(self.autostate)
             if(self.autostate == "INIT"):
                 if(True):#change to some actual check
                     self.autostate = "F_OBSTACLE_FIELD"
@@ -240,7 +241,8 @@ class high_level_state_controller(object):
             else:
                 self.autostate = "INIT"
 
-            print(self.autostate)
+            # print(self.autostate)
+            self.state_pub.publish(self.autostate)
             rate.sleep()
 
 
