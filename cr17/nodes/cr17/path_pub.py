@@ -6,11 +6,10 @@ from geometry_msgs.msg import PoseStamped, Pose
 from nav_msgs.msg import Path
 
 PATH_TOPIC = rospy.get_param("topics/path", "/obstacle_path")
-POINT_1_X = rospy.get_param("path_points/dump_obstacle/x", -0.5)
-POINT_1_Y = rospy.get_param("path_points/dump_obstacle/y", 1)
-POINT_2_X = rospy.get_param("path_points/obstacle_mine/x", 0.5)
-POINT_2_Y = rospy.get_param("path_points/obstacle_mine/y", 5)
-
+POINT_1_X = rospy.get_param("path_points/obstacle_mine/x", 0.75)
+POINT_1_Y = rospy.get_param("path_points/obstacle_mine/y", 5)
+POINT_2_X = rospy.get_param("path_points/dump_obstacle/x", -0.5)
+POINT_2_Y = rospy.get_param("path_points/dump_obstacle/y", 1)
 
 class PathPublisher(object):
     def __init__(self):

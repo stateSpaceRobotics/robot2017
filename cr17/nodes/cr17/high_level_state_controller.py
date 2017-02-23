@@ -216,6 +216,7 @@ class high_level_state_controller(object):
             ######################################################################################################
 
             #advance the autostate
+            print(self.autostate)
             if(self.autostate == "INIT"):
                 if(True):#change to some actual check
                     self.autostate = "F_OBSTACLE_FIELD"
@@ -239,8 +240,7 @@ class high_level_state_controller(object):
             else:
                 self.autostate = "INIT"
 
-
-            # print(self.autostate)
+            print(self.autostate)
             rate.sleep()
 
 
