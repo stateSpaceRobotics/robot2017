@@ -1,0 +1,15 @@
+scoop_config:
+  #driving_arm_angle: 0
+  #driving_scoop_angle: 0
+  #pre_dig_arm_angle: 0
+  #pre_dig_scoop_angle: 0
+  #digging_arm_angle: 0
+  #digging_scoop_angle: 0
+  #post_dig_arm_angle: 0
+  #post_dig_scoop_angle: 0
+  #pre_dump_arm_angle: 0
+  #pre_dump_scoop_angle: 0
+  #dumping_arm_angle: 0
+  #dumping_scoop_angle: 0
+  #post_dump_arm_angle: 0
+  #post_dump_scoop_angle: 0
