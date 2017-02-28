@@ -1,0 +1,32 @@
+<launch>
+
+  <arg name="model" default="$(find simulation_2017)/urdf/r2d2.urdf"/>
+  <arg name="rvizconfig" default="$(find simulation_2017)/urdf.rviz" />
+
+  <include file="$(find simulation_2017)/launch/control_beacon_localization.launch"/>
+  <!--<include file="$(find cr17)/launch/aruco.launch">
+    <arg name="rear_camera" default="/camera" />
+		<arg name="marker_size" default="0.19685" />
+		<arg name="board_directory" default="$(find cr17)/param" />
+		<arg name="boards_config" default="$(find cr17)/param/boardsConfiguration.yml" />
+		<arg name="intraboard_transform" default="0 -0.231775 0 0 0 0 1 /bigBoard /lilBoard 100" />
+		<arg name="world_to_bigBoard_transform" default="0 0 0 0 0.7071067811865475 0.7071067811865475 0 /bigBoard /world 100" />		
+		<arg name="transform_topic" default="/ar_multi_board/transform" />
+	</include>-->
+
+
+  <param name="robot_description" command="$(find xacro)/xacro.py $(arg model)" />
+  <!--<param name="magic_modelNamePrefix" value="r2d2" />-->
+
+  <!-- This param file is where any environment-agnostic (live or simulation)
+  configuration should be loaded, including controllers -->
+  <rosparam command="load" file="$(find simulation_2017)/config/control.yaml" />
+
+  <node name="high_level_state_controller" pkg="cr17" type="high_level_state_controller.py">
+    <remap from="/filtered_pose" to="/robot/standard_pose" />
+  </node>
+  <node name="path_pub" pkg="cr17" type="path_pub.py"/>
+  <node name="magic_odomFromGazebo" pkg="simulation_2017" type="magic_odomFromGazebo.py"/>
+
+
+</launch>

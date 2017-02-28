@@ -11,17 +11,17 @@ Proof of concept/sandbox module for trying out different ways to process lidar d
 '''
 
 ####### Default Global Values (stars lab motor tube testing) #######
-SCAN_TOPIC = "scan"
-POST_DIST = 1.2     # Distance posts are apart from one another on beacon
-POST_DIST_ERR = 0.2    #0.025  # Error allowed in post distance
+#SCAN_TOPIC = "scan"
+#POST_DIST = 1.2     # Distance posts are apart from one another on beacon
+#POST_DIST_ERR = 0.2    #0.025  # Error allowed in post distance
 MAX_RANGE = 15#1.25     # Max Scan range to consider
 LARGE_NUMBER = 9999999  # Arbitrarily large number
 
-POST_WIDTH = 0.1          # Expected width of post
-POST_WIDTH_ERR = 0.1  # Error allowed in post width
+#POST_WIDTH = 0.1          # Expected width of post
+#POST_WIDTH_ERR = 0.1  # Error allowed in post width
 
-LEFT_POST_LOC = (0.65, 0)     # Global coordinate of left post
-RIGHT_POST_LOC = (-0.65, 0)    # Global coordinate of right post
+#LEFT_POST_LOC = (0.65, 0)     # Global coordinate of left post
+#RIGHT_POST_LOC = (-0.65, 0)    # Global coordinate of right post
 #####################################
 
 class LaserObject(object):
@@ -73,8 +73,8 @@ class Beacon(object):
 class BeaconLocalizer(object):
 
     def __init__(self):
-        global SCAN_TOPIC, POST_DIST, LEFT_POST_LOC, RIGHT_POST_LOC
-        global POST_WIDTH, POST_WIDTH_ERR, POST_DIST_ERR
+        #global SCAN_TOPIC, POST_DIST, LEFT_POST_LOC, RIGHT_POST_LOC
+        #global POST_WIDTH, POST_WIDTH_ERR, POST_DIST_ERR
         '''
         Lidar Processor constructor
         '''
@@ -85,29 +85,29 @@ class BeaconLocalizer(object):
         ###################################
         # Load beacon localization params
         ###################################
-        SCAN_TOPIC = "base_scan"#rospy.get_param("beacon_localization/scan_topic", SCAN_TOPIC)
-        POST_DIST = rospy.get_param("beacon_localization/post_distance", POST_DIST)
-        PORT_DIST_ERR = rospy.get_param("beacon_localization/post_distance_err", POST_DIST_ERR)
-        POST_WIDTH = rospy.get_param("beacon_localization/post_width", POST_WIDTH)
-        POST_WIDTH_ERR = rospy.get_param("beacon_localization/post_width_err", POST_WIDTH_ERR)
-        loc = rospy.get_param("beacon_localization/left_post_loc", LEFT_POST_LOC)
-        LEFT_POST_LOC = (float(loc[0]), float(loc[1]))
-        loc = rospy.get_param("beacon_localization/right_post_loc", RIGHT_POST_LOC)
-        RIGHT_POST_LOC = (float(loc[0]), float(loc[1]))
-        BEACON_LOST_TOPIC = rospy.get_param("topics/beacon_lost", "beacon_lost")
-        # print("POST DIST: " + str(POST_DIST))
+        self.SCAN_TOPIC = rospy.get_param("beacon_localization/scan_topic")
+        self.POST_DIST = rospy.get_param("beacon_localization/post_distance")
+        self.POST_DIST_ERR = rospy.get_param("beacon_localization/post_distance_err")
+        self.POST_WIDTH = rospy.get_param("beacon_localization/post_width")
+        self.POST_WIDTH_ERR = rospy.get_param("beacon_localization/post_width_err")
+        loc = rospy.get_param("beacon_localization/left_post_loc")
+        self.LEFT_POST_LOC = (float(loc[0]), float(loc[1]))
+        loc = rospy.get_param("beacon_localization/right_post_loc")
+        self.RIGHT_POST_LOC = (float(loc[0]), float(loc[1]))
+        self.BEACON_LOST_TOPIC = rospy.get_param("topics/beacon_lost", "beacon_lost")
+        print("POST DIST: " + str(self.POST_DIST))
         ###################################
 
         ###################################
         # Load topic names
         ###################################
-        ROBOPOSE_TOPIC = rospy.get_param("topics/localization_pose", "beacon_localization_pose")
+        ROBOPOSE_TOPIC = rospy.get_param("topics/localization_pose")
 
-        rospy.Subscriber(SCAN_TOPIC, LaserScan, self.scan_callback)
+        rospy.Subscriber(self.SCAN_TOPIC, LaserScan, self.scan_callback)
 
-        self.vis_scan_pub = rospy.Publisher("vis_scan", LaserScan, queue_size = 10)
+        #self.vis_scan_pub = rospy.Publisher("vis_scan", LaserScan, queue_size = 10)
         self.pose_pub = rospy.Publisher(ROBOPOSE_TOPIC, PoseStamped, queue_size = 10)
-        self.beacon_lost_pub = rospy.Publisher(BEACON_LOST_TOPIC, Bool, queue_size = 10)
+        self.beacon_lost_pub = rospy.Publisher(self.BEACON_LOST_TOPIC, Bool, queue_size = 10)
 
         self.current_pose = PoseStamped()
         self.current_scan = LaserScan() # current scan message
@@ -206,7 +206,7 @@ class BeaconLocalizer(object):
                     scan_obj.process(scan_msg)
                     # Make sure object is of expected length
                     # print("Potential obj Length: " + str(scan_obj.length))
-                    if (scan_obj.length >= POST_WIDTH - POST_WIDTH_ERR) and (scan_obj.length <= POST_WIDTH + POST_WIDTH_ERR):
+                    if (scan_obj.length >= self.POST_WIDTH - self.POST_WIDTH_ERR) and (scan_obj.length <= self.POST_WIDTH + self.POST_WIDTH_ERR):
                         scan_objs.append(scan_obj)
                     scan_obj = LaserObject()
                 else:
@@ -233,8 +233,8 @@ class BeaconLocalizer(object):
                 dist = self.obj_dist(r_obj, l_obj)  # calculate distance between right and left objects
                 # check if dist indicates these two objects are a potential beacon
                 # print("==== OBJ DIST ====")
-                if (dist >= (POST_DIST - POST_DIST_ERR)) and (dist <= (POST_DIST + POST_DIST_ERR)):
-                    beacon_err = abs(dist - POST_DIST)
+                if (dist >= (self.POST_DIST - self.POST_DIST_ERR)) and (dist <= (self.POST_DIST + self.POST_DIST_ERR)):
+                    beacon_err = abs(dist - self.POST_DIST)
                     if beacon_err < min_beacon_err:
                         beacon = Beacon(right_post = r_obj, left_post = l_obj, actual_dist = dist, err = beacon_err)
                         min_beacon_err = beacon_err
@@ -262,8 +262,8 @@ class BeaconLocalizer(object):
         ###########################
         # calculate global position
         try:
-            xloc = (beacon.left_post.distance**2 - beacon.right_post.distance**2 - LEFT_POST_LOC[0]**2 + RIGHT_POST_LOC[0]**2) / (2*(RIGHT_POST_LOC[0] - LEFT_POST_LOC[0]))
-            yloc = math.sqrt(beacon.right_post.distance**2 - (xloc - RIGHT_POST_LOC[0])**2)
+            xloc = (beacon.left_post.distance**2 - beacon.right_post.distance**2 - self.LEFT_POST_LOC[0]**2 + self.RIGHT_POST_LOC[0]**2) / (2*(self.RIGHT_POST_LOC[0] - self.LEFT_POST_LOC[0]))
+            yloc = math.sqrt(beacon.right_post.distance**2 - (xloc - self.RIGHT_POST_LOC[0])**2)
         except:
             pass# print("Failed to calculate global position.")
         else:
