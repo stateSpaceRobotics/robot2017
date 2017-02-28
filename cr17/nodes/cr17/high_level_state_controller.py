@@ -206,6 +206,7 @@ class high_level_state_controller(object):
                 self.goal_pub.publish(dockPose)
 
             elif(self.autostate == "DUMPING"):
+                dumping_complete = False
                 if(self.dumpTimer == None):
                     self.dumpTimer = rospy.Time.now() + rospy.Duration(TIME_DUMP_SEC)
                 elif(self.dumpTimer >= rospy.Time.now() ):
@@ -222,10 +223,11 @@ class high_level_state_controller(object):
             if(self.autostate == "INIT"):
                 if(True):#change to some actual check
                     self.autostate = "F_OBSTACLE_FIELD"
+
                     msg = Bool()
                     msg.data = False
                     self.puber.publish(msg)
-                    rospy.logwarn("It gonna work.")
+                    rospy.logwarn("Publishing out path desire.")
             elif(self.autostate == "F_OBSTACLE_FIELD"):
                 if(self.pose.position.y >= Y_IN_MINING_AREA):
                     self.autostate = "MINING_BEHAVIOR"
@@ -237,7 +239,7 @@ class high_level_state_controller(object):
                     msg = Bool()
                     msg.data = True
                     self.puber.publish(msg)
-                    rospy.logwarn("It shoulda worked.")
+                    rospy.logwarn("Publishing in path desire.")
 
             elif(self.autostate == "B_OBSTACLE_FIELD"):
                 if(self.pose.position.y <= Y_IN_DOCKING_AREA):
@@ -249,6 +251,11 @@ class high_level_state_controller(object):
                 if(dumping_complete or (self.pose.position.y >= Y_IN_DUMP_RANGE)):
                     self.autostate = "F_OBSTACLE_FIELD"
                     self.dumpTimer = None
+
+                    msg = Bool()
+                    msg.data = False
+                    self.puber.publish(msg)
+                    rospy.logwarn("Publshing out path desire.")
             else:
                 self.autostate = "INIT"
 

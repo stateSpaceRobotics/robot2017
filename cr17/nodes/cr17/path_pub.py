@@ -52,8 +52,19 @@ class PathPublisher(object):
             self.path.poses = []
             self.path.poses.append(point1)
             self.path.poses.append(point2)
-            rospy.logwarn('WE ARE HERE!!!!!!!!')
+            rospy.logwarn('Setting path to return')
+        else:
+            point1 = PoseStamped()
+            point1.pose.position.x = POINT_1_X
+            point1.pose.position.y = POINT_1_Y
+            point2 = PoseStamped()
+            point2.pose.position.x = POINT_2_X
+            point2.pose.position.y = POINT_2_Y
 
+            self.path.poses = []
+            self.path.poses.append(point1)
+            self.path.poses.append(point2)
+            rospy.logwarn('Setting path to go out')
 
 
 if __name__ == "__main__":
