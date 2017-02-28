@@ -9,20 +9,20 @@ from cr17.msg import scoopControl
 
 
 ARM_STATE_TOPIC = rospy.get_param("topics/scoop_state_cmds", "scoop_commands")
-POSE_TOPIC = "/beacon_localization_pose" #rospy.get_param("topics/filtered_pose", "filtered_pose")
+POSE_TOPIC = rospy.get_param("topics/localization_pose") #rospy.get_param("topics/filtered_pose", "filtered_pose")
 PATH_TOPIC = rospy.get_param("topics/path", "/obstacle_path")
 GOAL_TOPIC = rospy.get_param("topics/navigation_goals", "nav_goal") #TODO: might need to be renamed
 STATE_TOPIC = rospy.get_param("topics/robot_state", "state")
 MINING_DISTANCE = rospy.get_param("distance_to_mine", 1.5)
 
-Y_IN_DUMP_RANGE = 0.01
+Y_IN_DUMP_RANGE = 0.6
 Y_IN_MINING_AREA = 4.5 #10 cm past edge of mining area
 Y_IN_DOCKING_AREA = 1.5
 
 TIME_DUMP_SEC = 10
 
 X_POS_DUMP = 0
-Y_POS_DUMP = 0
+Y_POS_DUMP = 0.5
 
 IS_CLOSE_DIST = 0.4
 ANGLES_TO_MINE = [0, 30, -30, 60, -60]
@@ -39,6 +39,7 @@ class high_level_state_controller(object):
         self.arm_pub = rospy.Publisher(ARM_STATE_TOPIC, scoopControl, queue_size=10)
         self.goal_pub = rospy.Publisher(GOAL_TOPIC, PoseStamped, queue_size=10) #TODO: change to a Path
         self.state_pub = rospy.Publisher(STATE_TOPIC, String, queue_size=10)
+        self.puber = rospy.Publisher('/home', Bool, queue_size=10)
 
         rospy.Subscriber(POSE_TOPIC, PoseStamped, self.pose_sub)
         self.pose = Pose()
@@ -221,6 +222,10 @@ class high_level_state_controller(object):
             if(self.autostate == "INIT"):
                 if(True):#change to some actual check
                     self.autostate = "F_OBSTACLE_FIELD"
+                    msg = Bool()
+                    msg.data = False
+                    self.puber.publish(msg)
+                    rospy.logwarn("It gonna work.")
             elif(self.autostate == "F_OBSTACLE_FIELD"):
                 if(self.pose.position.y >= Y_IN_MINING_AREA):
                     self.autostate = "MINING_BEHAVIOR"
@@ -228,6 +233,12 @@ class high_level_state_controller(object):
                 if(mining_complete or (self.pose.position.y < Y_IN_MINING_AREA - .3)): #TODO: change the mining_complete to a teleop on check
                     self.autostate = "B_OBSTACLE_FIELD"
                     self.minePath = None
+
+                    msg = Bool()
+                    msg.data = True
+                    self.puber.publish(msg)
+                    rospy.logwarn("It shoulda worked.")
+
             elif(self.autostate == "B_OBSTACLE_FIELD"):
                 if(self.pose.position.y <= Y_IN_DOCKING_AREA):
                     self.autostate = "DOCKING"
@@ -235,7 +246,7 @@ class high_level_state_controller(object):
                 if(self.pose.position.y < Y_IN_DUMP_RANGE):
                     self.autostate = "DUMPING"
             elif(self.autostate == "DUMPING"):
-                if(dumping_complete or (self.pose.position.y >= Y_IN_DUMP_RANGE+0.5)):
+                if(dumping_complete or (self.pose.position.y >= Y_IN_DUMP_RANGE)):
                     self.autostate = "F_OBSTACLE_FIELD"
                     self.dumpTimer = None
             else:
