@@ -18,7 +18,7 @@ topics:
     # hopper_cmds: hopper_control                             # ROS Int16 msgs, cmds (-128, 127) for hopper
     # collector_spin_cmds: collector_spin_control             # ROS Int16 msgs, cmds (-128, 127) for coll spin
     # collector_tilt_cmds: collector_tilt_control             # ROS Int16 msgs, cmds (-128, 127) for coll tilt
-    # localization_pose: beacon_localization_pose             # ROS PoseStamped msgs, pose from beacon localization
+    localization_pose: beacon_localization_pose             # ROS PoseStamped msgs, pose from beacon localization
     # localization_pose_filtered: beacon_localization_pose_filtered
     # hopper_potentiometer: hopper_pot                        # ROS UInt16 msgs, value of hopper pot
     # collector_potentiometer: collector_pot                  # ROS UInt16 msgs, value of coll pot

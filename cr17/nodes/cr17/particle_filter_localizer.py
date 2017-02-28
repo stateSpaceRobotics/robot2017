@@ -4,7 +4,7 @@ from geometry_msgs.msg import *
 from sensor_msgs.msg import *
 from nav_msgs.msg import *
 from tf.transformations import euler_from_quaternion, quaternion_from_euler 
-from classic_robot.msg import localizationPoint, localizationPoints
+from cr17.msg import localizationPoint, localizationPoints
 import math
 import random
 

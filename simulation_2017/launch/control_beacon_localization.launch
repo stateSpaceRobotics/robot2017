@@ -32,12 +32,12 @@
   <!--<node name="rqt_robot_steering" pkg="rqt_robot_steering" type="rqt_robot_steering">
     <param name="default_topic" value="/r2d2_diff_drive_controller/cmd_vel"/>
   </node>-->
+  <rosparam command="load" file="$(find cr17)/param/beacon_localization.yaml" />
+  <rosparam command="load" file="$(find cr17)/param/topics.yaml" />
   <node name="navigator" pkg="cr17" type="navigator.py">
     <remap from="cmd_vel" to="r2d2_diff_drive_controller/cmd_vel"/>
   </node>
-  <node name="beacon_localization" pkg="cr17" type="beacon_localization.py">
-    <remap from="base_scan" to="scan"/>
-  </node>
+  <node name="beacon_localization" pkg="cr17" type="beacon_localization.py"/>
   
 
 </launch>

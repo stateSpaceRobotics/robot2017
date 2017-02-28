@@ -9,7 +9,7 @@ from cr17.msg import scoopControl
 
 
 ARM_STATE_TOPIC = rospy.get_param("topics/scoop_state_cmds", "scoop_commands")
-POSE_TOPIC = rospy.get_param("topics/filtered_pose", "filtered_pose")
+POSE_TOPIC = "/beacon_localization_pose" #rospy.get_param("topics/filtered_pose", "filtered_pose")
 PATH_TOPIC = rospy.get_param("topics/path", "/obstacle_path")
 GOAL_TOPIC = rospy.get_param("topics/navigation_goals", "nav_goal") #TODO: might need to be renamed
 STATE_TOPIC = rospy.get_param("topics/robot_state", "state")
