@@ -74,10 +74,20 @@ class Joystick_Controller(object):
     def startTeleop(self):
         #TODO: call the services from navigator, scoop_controller, and the HLSC
         self.teleopEnabled = True
+        try:
+            autonomousActive = rospy.ServiceProxy("/autonomousScoop", autonomousActive)
+            resp1 = autonomousActive(False)
+        except rospy.ServiceException, e:
+            rospy.logerr("/autonomousScoop service call failed: %s",e)
 
     def endTeleop(self):
         #TODO: call the services from navigator, scoop_controller, and the HLSC
         self.teleopEnabled = False
+        try:
+            autonomousActive = rospy.ServiceProxy("/autonomousScoop", autonomousActive)
+            resp1 = autonomousActive(True)
+        except rospy.ServiceException, e:
+            rospy.logerr("/autonomousScoop service call failed: %s",e)
 
     def joy_callback(self, data):
         '''
