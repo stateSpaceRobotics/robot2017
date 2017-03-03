@@ -5,7 +5,7 @@ import rospy, math
 from geometry_msgs.msg import PoseStamped, Twist, Pose
 from std_msgs.msg import Float64, Bool
 from nav_msgs.msg import Path
-from cr17.msgs import scoopControl
+from cr17.msg import scoopControl
 from cr17.srv import autonomousActive, autonomousActiveResponse
 
 
