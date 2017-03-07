@@ -31,12 +31,12 @@ This node must be run under su privelages. I've been doing it using sudo su, the
 #7 Unused :
 
 ##Receive from MBed Package Description(8 bytes)
-#0 wheelData :  FrntLVel 
+#0 wheelData :  FrntLVel
 #1 wheelData :  FrntRVel
 #2 wheelData :  BackLVel
 #3 wheelData :  BackRVel
-#4 Unused : 
-#5 Unused : 
+#4 Unused :
+#5 Unused :
 #6 Unused :
 #7 Unused :
 
@@ -73,13 +73,13 @@ INT_BITS_SHIFT = 4
 
 #TWO Byte float upper/lower limits
 TWO_BYTE_FLOAT_UPPER_LIMIT = 511.9      # 2^13 * 2^FRAC_BIT_WIDTH
-TWO_BYTE_FLOAT_LOWER_LIMIT = 0.0  
+TWO_BYTE_FLOAT_LOWER_LIMIT = 0.0
 
-#The upper limts of the MSB and the LSB      
+#The upper limts of the MSB and the LSB
 MSB_UPPER_LIMIT     = 255
 LSB_UPPER_LIMIT     = 31
 
-#The lower limts of the MSB and the LSB 
+#The lower limts of the MSB and the LSB
 MSB_LOWER_LIMIT     = 0
 LSB_LOWER_LIMIT     = 0
 
@@ -87,13 +87,13 @@ LSB_LOWER_LIMIT     = 0
 MSB_SHIFT           = 5
 
 #Used to isolate the LSB
-LSB_AND             = 0b0000000011111 
+LSB_AND             = 0b0000000011111
 
 ######################################
 #Topic Variables
 ######################################
-DRIVE_TOPIC = "/cmd_vel"     
-SCOOP_TOPIC = "/cmd_scoop"   
+DRIVE_TOPIC = "/cmd_vel"
+SCOOP_TOPIC = "/cmd_scoop"
 WHEEL_SPEED_TOPIC = "/wheel_speed"
 
 ######################################
@@ -106,7 +106,7 @@ def fixed_to_float_2(int_MSB, int_LSB):
     #Makes sure both fixed val inputs are ints
     if ((type(int_MSB) != int) | (type(int_LSB) != int)):
         raise TypeError
-    
+
     #Makes sure the fixed value uses only 13 bits, and sticks to the correct scheme
     if ((int_MSB > MSB_UPPER_LIMIT) | ( int_LSB > LSB_UPPER_LIMIT)):
         raise ValueError("One of the two bytes is too large a value.")
@@ -169,7 +169,7 @@ def fixed_to_float(fixed_val):
     #The MSb determines if it is positive or negative, hence being greater than 128 tells the sign(pos = 0, neg = 1)
     if fixed_val > 128:
         is_neg = True
-    else: 
+    else:
         is_neg = False
 
     int_val = (fixed_val & INT_BITS_AND) >> INT_BITS_SHIFT
@@ -186,7 +186,7 @@ def fixed_to_float(fixed_val):
 class MbedInterface(object):
     def __init__(self):
         rospy.init_node('mbed_interface')
-        
+
         #These will be updated as new data is received for it.
         self.__cmd_vel = Twist()
         self.__cmd_scoop = scoopControl()
@@ -195,7 +195,7 @@ class MbedInterface(object):
         #Raw data list(byte array?) to/from the Mbed
         self.__data = [0x0] * DATA_ARRAY_SIZE  #Initializes bytes to be set to zero
         self.__bytes = None
-        
+
         ######################################
         # Setup ROS Subscribers for this node
         ######################################
@@ -207,11 +207,11 @@ class MbedInterface(object):
         # Setup ROS Publishers for this node
         ######################################
         self.wheel_speed_pub = rospy.Publisher(WHEEL_SPEED_TOPIC, wheelData, queue_size = 10)
-        
-        #This sets up the code for the USB. I'm not 100% what it all does, but it works and is entirely based off the example. 
+
+        #This sets up the code for the USB. I'm not 100% what it all does, but it works and is entirely based off the example.
         # Find device
         self.__hid_device = usb.core.find(idVendor=MBED_VENDOR_ID,idProduct=MBED_PRODUCT_ID)
-    
+
         if not self.__hid_device:
             print "No device connected"
         else:
@@ -226,7 +226,7 @@ class MbedInterface(object):
                 self.__hid_device.reset()
             except usb.core.USBError as e:
                 sys.exit("Could not set configuration: %s" % str(e))
-            
+
             self.__endpoint = self.__hid_device[0][(0,0)][0]
 
 
@@ -255,23 +255,27 @@ class MbedInterface(object):
         #Sets up wheelData message
         self.__wheel_data.frontLeftVel  = fixed_to_float(data[0])
         self.__wheel_data.frontRightVel = fixed_to_float(data[1])
-        self.__wheel_data.backLeftVel   = fixed_to_float(data[2])  
+        self.__wheel_data.backLeftVel   = fixed_to_float(data[2])
         self.__wheel_data.backRightVel  = fixed_to_float(data[3])
-        
+
         #publishes wheelData message to topic
         self.wheel_speed_pub.publish(self.__wheel_data)
-        
+
+		#TODO: Send Values Scoop Position Value to TF Tree
+        print fixed_to_float_2(data[4], data[5])
+        print fixed_to_float_2(data[6], data[7])
+
 
     def run(self):
         while not rospy.is_shutdown():
             rate = rospy.Rate(ROS_SLEEP_RATE)
-                        
+
             #read the data
             self.__bytes = self.__hid_device.read(self.__endpoint.bEndpointAddress, 8, timeout=5000)
             self.mbed_recieve_handler(self.__bytes)
-        
+
             self.__hid_device.write(1, self.__data)
-        
+
             rate.sleep()
 
 
