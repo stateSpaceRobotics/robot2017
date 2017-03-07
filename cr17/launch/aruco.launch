@@ -4,23 +4,28 @@
 		 Rather, include it in the main launch file 
 		 and launch that file.  -->
 
-	<arg name="rear_camera" />
-	<arg name="marker_size" />
+	<!-- 
+	camera namespace
+	contains image_raw and camera_info
+	MUST BE RECTIFIED!
+	-->
+	<arg name="camera_ns" />
+
+	<!-- aruco configs -->
 	<arg name="board_directory" />
 	<arg name="boards_config" />
 
-	<arg name="intraboard_transform" />
-	<arg name="world_to_bigBoard_transform" />
-	<arg name="transform_topic" />
+	<!-- frame configs for pose estimate -->
+	<arg name="world_frame" />
+	<arg name="target_frame" />
 
 	<node pkg="ar_sys" type="multi_boards" name="ar_multi_board">
 
 		<!-- May need tweaking based on kinect/realsense -->
-		<remap from="/camera_info" to="$(arg rear_camera)/rgb/camera_info" />
-		<remap from="/image" to="$(arg rear_camera)/rgb/image_raw" />
+		<remap from="/camera_info" to="$(arg rear_camera)/camera_info" />
+		<remap from="/image" to="$(arg rear_camera)/image_raw" />
 
 		<param name="image_is_rectified" type="bool" value="true"/>
-		<param name="marker_size" type="double" value="$(arg marker_size)"/>
 
 		<param name="boards_config" type="string" value="$(arg boards_config)" />
 
@@ -31,13 +36,11 @@
 		<param name="draw_markers_axis" type="bool" value="false" />
 	</node>
 
-	<node pkg="cr17" type="aruco_transform_broadcaster.py" name="aruco_transformer" >
-		<param name="transform_topic" type="string" value="$(arg transform_topic" />
+	<node pkg="cr17" type="aruco_pose" name="aruco_pose">
+		<param name="transform_topic" value="ar_multi_board/transform" />
+		<param name="pose_topic" value="pose_estimate" />
+		<param name="world_frame" value="$(arg world_frame)" />
+		<param name="target_frame" value="$(arg target_frame)" />
 	</node>
-
-	<node pkg="tf" type="static_transform_publisher" name="TF_big_to_lil_board" args="$(arg intraboard_transform)" />
-
-	<node pkg="tf" type="static_transform_publisher" name="TF_world_to_bigBoard" args="$(arg world_to_bigBoard_transform)" />
-
 
 </launch>

@@ -44,10 +44,10 @@
   <build_depend>rospy</build_depend>
   <build_depend>std_msgs</build_depend>
   <build_depend>joy</build_depend>
+  <build_depend>tf</build_depend>
   <run_depend>roscpp</run_depend>
   <run_depend>rospy</run_depend>
   <run_depend>std_msgs</run_depend>
-  <run_depend>gray_transceiver</run_depend>
   <run_depend>joy</run_depend>
 	<run_depend>libusb-1.0</run_depend>
 	<run_depend>pyusb</run_depend>

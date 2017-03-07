@@ -28,13 +28,11 @@
 	<!-- Launches aruco stack -->
 	<include file="$(find cr17)/launch/aruco.launch" >
 		<!-- aruco parameters -->
-		<arg name="rear_camera" default="/camera" />
-		<arg name="marker_size" default="0.19685" />
+		<arg name="camera" default="/rear_kinect/rgb" />
 		<arg name="board_directory" default="$(find cr17)/param" />
 		<arg name="boards_config" default="$(find cr17)/param/boardsConfiguration.yml" />
-		<arg name="intraboard_transform" default="0 -0.231775 0 0 0 0 1 /bigBoard /lilBoard 100" />
-		<arg name="world_to_bigBoard_transform" default="0 0 0 0 0.7071067811865475 0.7071067811865475 0 /bigBoard /world 100" />		
-		<arg name="transform_topic" default="/ar_multi_board/transform" />
+		<arg name="world_frame" default="world" />
+		<arg name="target_frame" default="base_link"/>
 	</include>
 
 	<!--Launch the nodes used for autonomy -->
