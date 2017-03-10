@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 import rospy
 from cr17.msg import scoopControl
-from cr17.srv import autonomousActive
+from cr17.srv import autonomousActive, autonomousActiveResponse
 
 # Topics
 ARM_STATE_TOPIC = rospy.get_param('topics/scoop_state_cmds')
@@ -65,8 +65,7 @@ class ScoopController(object):
 
     def set_autonomy(self, req):
         self.autonomous = req.autonomousActive
-        req.acknowledged = True
-        return req
+        return autonomousActiveResponse(True)
 
     def update_scoop_msg(self, msg):
         self.scoop_msg = msg
