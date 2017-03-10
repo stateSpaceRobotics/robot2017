@@ -1,6 +1,6 @@
 <launch>
 
-  <arg name="model" default="$(find simulation_2017)/urdf/r2d2.xacro"/>
+  <arg name="model" default="$(find simulation_2017)/urdf/cr17.xacro"/>
   <arg name="rvizconfig" default="$(find simulation_2017)/urdf.rviz" />
 
   <include file="$(find simulation_2017)/launch/r2d2_world.launch">
@@ -11,13 +11,13 @@
 
   <!-- push robot_description to factory and spawn robot in gazebo -->
   <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model"
-        args="-z 1.0 -x 1 -y 1 -unpause -urdf -model robot -param robot_description" respawn="false" output="screen" />
+        args="-z 1.0 -x 0 -y 1 -unpause -urdf -model robot -param robot_description" respawn="false" output="screen" />
 
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" />
 
   <!-- This param file is where any environment-agnostic (live or simulation)
   configuration should be loaded, including controllers -->
-  <rosparam command="load" file="$(find simulation_2017)/config/control.yaml" />
+  <rosparam command="load" file="$(find simulation_2017)/config/control_cr17.yaml" />
 
   <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
@@ -25,15 +25,17 @@
 
   <!-- This node loads the two controllers into a controller manager (real or simulated). The
   controllers are defined in config/control.yaml -->
-  <node name="r2d2_controller_spawner" pkg="controller_manager" type="spawner"
-    args="r2d2_joint_state_controller
-          r2d2_diff_drive_controller
-          r2d2_head_controller
-          r2d2_gripper_controller
+  <node name="cr17_controller_spawner" pkg="controller_manager" type="spawner"
+    args="cr17_joint_state_controller
+          cr17_diff_drive_controller
+          cr17_left_arm_controller
+          cr17_right_arm_controller
+          cr17_left_scoop_controller
+          cr17_right_scoop_controller
           --shutdown-timeout 3"/>
 
   <node name="rqt_robot_steering" pkg="rqt_robot_steering" type="rqt_robot_steering">
-    <param name="default_topic" value="/r2d2_diff_drive_controller/cmd_vel"/>
+    <param name="default_topic" value="/cr17_diff_drive_controller/cmd_vel"/>
   </node>
 
 </launch>

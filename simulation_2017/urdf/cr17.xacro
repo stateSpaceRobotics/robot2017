@@ -1,0 +1,733 @@
+<?xml version="1.0"?>
+<!--rosrun xacro xacro cr17.xacro > cr17.urdf && roslaunch urdf_tutorial display.launch model:='$(find simulation_2017)/urdf/cr17.urdf' gui:=True-->
+<robot name="cr17" xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <xacro:property name="transparency" value="0.6" />
+
+  <xacro:property name="oneinch" value="0.0254" />
+  <xacro:property name="pi" value="3.1415" />
+
+  <xacro:property name="width" value=".2" />
+  <xacro:property name="leglen" value=".6" />
+  <xacro:property name="polelen" value=".2" />
+  <xacro:property name="bodylen" value=".6" />
+
+  <xacro:property name="spacebetweenmirrors" value="${oneinch*18}" />  
+
+  <xacro:property name="baselen" value="${oneinch*30.5}" /> <!--The base is referred to here is the peice that the wheels attach to-->
+  <xacro:property name="basewidth" value="${oneinch}" />
+  <xacro:property name="baseheight" value="${oneinch*2}" />
+  <xacro:property name="armbaselength" value="${oneinch*2}" />
+  <xacro:property name="armbasewidth" value="${oneinch}" />
+  <xacro:property name="armbaseheight" value="${oneinch*19}" />
+  <xacro:property name="controlsboxlength" value="${oneinch*14.25}" />
+  <xacro:property name="controlsboxwidth" value="${oneinch*18}" />
+  <xacro:property name="controlsboxheight" value="${oneinch*14}" />
+  <xacro:property name="wheeldiam" value="${oneinch*12}" />
+  <xacro:property name="wheelwidth" value="${oneinch*3}" />
+  <xacro:property name="wheeldrop" value="${oneinch*2}" />
+
+  <xacro:property name="linactmntwidth" value="${oneinch*2}" />
+  <xacro:property name="linactmntdistancefromback" value="${oneinch*14.5+linactmntwidth/2}" /> <!--The distance the linear actuator lower mount is from the back of the robot-->
+  <xacro:property name="linactmntverticallength" value="${oneinch*4.5}" />
+  <xacro:property name="linactmnthorizontallength" value="${oneinch*3.5}" />
+  <xacro:property name="linactmntlength" value="${oneinch}" />
+
+  <xacro:property name="upperarmaxlebardistance" value="${oneinch}" />
+  <xacro:property name="upperarmlength" value="${oneinch*30.75}" /><!--originally 31in--> 
+  <xacro:property name="upperarmwidth" value="${oneinch}" />
+  <xacro:property name="upperarmheight" value="${oneinch}" />
+  <xacro:property name="upperlinactmntdist" value="${oneinch*16.68}" />
+
+  <xacro:property name="lowerarmangle" value="2.35619" />
+  <xacro:property name="lowerarmlength" value="${oneinch*20}" /> 
+  <xacro:property name="lowerarmwidth" value="${oneinch}" />
+  <xacro:property name="lowerarmheight" value="${oneinch}" />
+
+  <xacro:property name="scooplinactmountbarlength" value="${oneinch*3}" />
+  <xacro:property name="scooplinactmountbaroffset" value="${oneinch*7}" />
+
+  <xacro:property name="scooplength" value="0.2" /> <!--get actual value -->
+  <xacro:property name="scoopheight" value="0.3" /> <!--get actual value -->
+  <xacro:property name="scoopwidth" value="${oneinch*18}" />
+  <xacro:property name="scoopdistancefromaxis" value="0.03" /> <!--get actual value -->
+  <xacro:property name="scoopdistanceabovecornerofaxis" value="0.04" /> <!-- get actual value -->
+  <xacro:property name="scoopaxisbackfrombar" value="${oneinch}" /> <!--get actual value -->
+  <xacro:property name="scoopaxisabovebar" value="${oneinch/2}" /> <!--get actual value-->
+
+  <xacro:property name="scoopplaneangle" value="${pi/2}" />
+
+  <xacro:property name="scoopactmountdown" value="0.02" /> <!--get actual value -->
+  <xacro:property name="scoopactmountback" value="0.03" /> <!-- get actual value -->
+  <xacro:property name="scoopactmountin" value="${oneinch*8}" /> <!--based on the drawing having the center line of the actuator and inch past the offset, doublecheck-->
+
+  <xacro:property name="lidarmountheight" value="0.1" /> <!--get an actual value-->
+  <xacro:property name="hokuyolength" value="0.04" /><!--get an actual value-->
+  <xacro:property name="hokuyowidth" value="0.04" /><!--get an actual value-->
+  <xacro:property name="hokuyoheight" value="0.09" /><!--get an actual value-->
+  <xacro:property name="sicklength" value="0.04" /><!--get an actual value-->
+  <xacro:property name="sickwidth" value="0.04" /><!--get an actual value-->
+  <xacro:property name="sickheight" value="0.07" /><!--get an actual value-->
+
+
+  <material name="blue">
+    <color rgba="0 0 .8 ${transparency}"/>
+  </material>
+
+  <material name="black">
+    <color rgba="0 0 0 ${transparency}"/>
+  </material>
+
+  <material name="white">
+    <color rgba="1 1 1 ${transparency}"/>
+  </material>
+
+  <material name="red">
+    <color rgba="1 0 0 ${transparency}"/>
+  </material>
+
+  <material name="green">
+    <color rgba="0 1 0 ${transparency}"/>
+  </material>
+
+  <xacro:macro name="default_inertial" params="mass">
+    <inertial>
+      <mass value="${mass}" />
+      <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0" />
+    </inertial>
+  </xacro:macro>
+
+  <link name="base_link">
+    <visual>
+      <geometry>
+        <box size="${controlsboxlength} ${controlsboxwidth} ${controlsboxheight}"/>
+      </geometry>
+      <material name="blue"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="${controlsboxlength} ${controlsboxwidth} ${controlsboxheight}"/>
+      </geometry>
+    </collision>
+    <xacro:default_inertial mass="0"/>
+  </link>
+  <gazebo reference="base_link">
+    <material>Gazebo/Blue</material>
+  </gazebo>
+
+  <xacro:macro name="wheel" params="prefix suffix reflect">
+    <link name="${prefix}_${suffix}_wheel">
+      <visual>
+        <origin xyz="0 0 0" rpy="${pi/2} 0 0" />
+        <geometry>
+          <cylinder radius="${wheeldiam/2}" length="${wheelwidth}"/>
+        </geometry>
+        <material name="black"/>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="${pi/2} 0 0" />
+        <geometry>
+          <cylinder radius="${wheeldiam/2}" length="${wheelwidth}"/>
+        </geometry>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+      </collision>
+      <xacro:default_inertial mass="1"/>
+    </link>
+    <joint name="${prefix}_${suffix}_wheel_joint" type="continuous">
+      <axis xyz="0 1 0" rpy="0 0 0" />
+      <parent link="${prefix}_${suffix}_wheel_mount"/>
+      <child link="${prefix}_${suffix}_wheel"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </joint>
+
+    <!-- This block provides the simulator (Gazebo) with information on a few additional
+    physical properties. See http://gazebosim.org/tutorials/?tut=ros_urdf for more-->
+    <gazebo reference="${prefix}_${suffix}_wheel">
+      <mu1 value="200.0"/>
+      <mu2 value="100.0"/>
+      <kp value="10000000.0" />
+      <kd value="1.0" />
+      <material>Gazebo/Grey</material>
+    </gazebo>
+
+    <!-- This block connects the wheel joint to an actuator (motor), which informs both
+    simulation and visualization of the robot -->
+    <transmission name="${prefix}_${suffix}_wheel_trans" type="SimpleTransmission">
+      <type>transmission_interface/SimpleTransmission</type>
+      <actuator name="${prefix}_${suffix}_wheel_motor">
+        <mechanicalReduction>1</mechanicalReduction>
+      </actuator>
+      <joint name="${prefix}_${suffix}_wheel_joint">
+        <hardwareInterface>VelocityJointInterface</hardwareInterface>
+      </joint>
+    </transmission>
+  </xacro:macro>
+
+  <xacro:macro name="side_base" params="prefix reflect">
+    <link name="${prefix}_armbase">
+      <visual>
+        <geometry>
+          <box size="${armbaseheight} ${armbasewidth} ${armbaselength}"/>
+        </geometry>
+        <origin xyz="0 0 ${armbaseheight/2}" rpy="0 ${pi/2} 0"/>
+        <material name="green"/>
+      </visual>
+      <collision>
+        <geometry>
+          <box size="0 0 0"/>
+        </geometry>
+        <origin xyz="0 0 ${armbaseheight/2}" rpy="0 ${pi/2} 0"/>
+      </collision>
+      <xacro:default_inertial mass="3"/>
+    </link>
+    <gazebo reference="${prefix}_armbase">
+      <material>Gazebo/White</material>
+    </gazebo>
+
+    <joint name="base_to_${prefix}_leg" type="fixed">
+      <parent link="base_link"/>
+      <child link="${prefix}_base"/>
+      <origin xyz="${baselen/2- controlsboxlength/2} ${reflect*(controlsboxwidth/2+basewidth/2)} -${controlsboxheight/2+baseheight/2}" />
+    </joint>
+
+    <link name="${prefix}_base">
+      <visual>
+        <geometry>
+          <box size="${baselen} ${basewidth} ${baseheight}"/>
+        </geometry>
+        <material name="white"/>
+      </visual>
+      <collision>
+        <geometry>
+          <box size="${baselen} ${basewidth} ${baseheight}"/>
+        </geometry>
+      </collision>
+      <xacro:default_inertial mass="3"/>
+    </link>
+    <gazebo reference="${prefix}_base">
+      <material>Gazebo/White</material>
+    </gazebo>
+
+    <joint name="${prefix}_base_joint" type="fixed">
+      <parent link="${prefix}_base"/>
+      <child link="${prefix}_armbase"/>
+      <origin xyz="-${baselen/2-armbaselength/2} 0 ${baseheight/2}"/>
+    </joint>
+
+    <link name="${prefix}_front_wheel_mount">
+      <visual>
+        <geometry>
+          <box size="0 0 0"/>
+        </geometry>
+        <material name="white"/>
+      </visual>
+      <collision>
+        <geometry>
+          <box size="0 0 0"/>
+        </geometry>
+      </collision>
+      <xacro:default_inertial mass="1"/>
+    </link>
+    <joint name="${prefix}_front_wheel_mount_joint"  type="fixed">
+      <parent link="${prefix}_base"/>
+      <child link="${prefix}_front_wheel_mount"/>
+      <origin xyz="${baselen/2-oneinch} ${reflect*(wheelwidth/2+basewidth/2)} -${wheeldrop}"/>
+    </joint>
+
+    <link name="${prefix}_back_wheel_mount">
+      <visual>
+        <geometry>
+          <box size="0 0 0"/>
+        </geometry>
+        <material name="white"/>
+      </visual>
+      <collision>
+        <geometry>
+          <box size="0 0 0"/>
+        </geometry>
+      </collision>
+      <xacro:default_inertial mass="1"/>
+    </link>
+    <joint name="${prefix}_back_wheel_mount_joint"  type="fixed">
+      <parent link="${prefix}_base"/>
+      <child link="${prefix}_back_wheel_mount"/>
+      <origin xyz="-${baselen/2-oneinch*2} ${reflect*(wheelwidth/2+basewidth/2)} -${wheeldrop}"/>
+    </joint>
+
+    <xacro:wheel prefix="${prefix}" suffix="front" reflect="1"/>
+    <xacro:wheel prefix="${prefix}" suffix="back" reflect="-1"/>
+
+    <link name="${prefix}_linactmnt_vert">
+      <visual>
+        <geometry>
+          <box size="${linactmntwidth} ${linactmntlength} ${linactmntverticallength}"/>
+        </geometry>
+        <material name="red"/>
+      </visual>
+      <collision>
+        <geometry>
+          <box size="${linactmntwidth} ${linactmntlength} ${linactmntverticallength}"/>
+        </geometry>
+      </collision>
+      <xacro:default_inertial mass="0.001"/>
+    </link>
+    <joint name="${prefix}_linactmnt_vert_link" type="fixed">
+      <parent link="${prefix}_base"/>
+      <child link="${prefix}_linactmnt_vert"/>
+      <origin xyz="0 0 -${linactmntverticallength/2+baseheight/2}"/>
+    </joint>
+
+    <link name="${prefix}_linactmnt_horiz">
+      <visual>
+        <geometry>
+          <box size="${linactmntwidth} ${linactmntlength} ${linactmnthorizontallength}"/>
+        </geometry>
+        <material name="green"/>
+      </visual>
+      <collision>
+        <geometry>
+          <box size="${linactmntwidth} ${linactmntlength} ${linactmnthorizontallength}"/>
+        </geometry>
+      </collision>
+      <xacro:default_inertial mass="0.001"/>
+    </link>
+    <joint name="${prefix}_linactmnt_horiz_link" type="fixed">
+      <parent link="${prefix}_linactmnt_vert"/>
+      <child link="${prefix}_linactmnt_horiz"/>
+      <origin xyz="0 ${reflect*(linactmnthorizontallength/2+linactmntlength/2)} -${linactmntverticallength/2-linactmntlength/2}" rpy="${pi/2} 0 0"/>
+    </joint>
+
+    <link name="${prefix}_upper_arm">
+      <visual>
+        <geometry>
+          <box size="${upperarmlength} ${upperarmwidth} ${upperarmheight}"/>
+        </geometry>
+        <origin xyz="${upperarmlength/2} 0 0" rpy="0 0 0"/>
+        <material name="red"/>
+      </visual>
+      <collision>
+        <geometry>
+          <box size="0 0 0"/>
+        </geometry>
+      </collision>
+      <xacro:default_inertial mass="3"/>
+    </link>
+    <joint name="${prefix}_armbase_to_upperarm" type="continuous">
+      <parent link="${prefix}_armbase"/>
+      <child link="${prefix}_upper_arm"/>
+      <origin xyz="${upperarmaxlebardistance} 0 ${armbaseheight+upperarmwidth/2}"/>
+      <axis xyz="0 1 0"/>
+    </joint>
+
+    <transmission name="${prefix}_armbase_to_upperarm_trans" type="SimpleTransmission">
+      <type>transmission_interface/SimpleTransmission</type>
+      <actuator name="$motor_${prefix}_armbase_to_upperarm">
+        <mechanicalReduction>1</mechanicalReduction>
+      </actuator>
+      <joint name="${prefix}_armbase_to_upperarm">
+        <hardwareInterface>PositionJointInterface</hardwareInterface>
+      </joint>
+    </transmission>
+
+    <link name="${prefix}_upper_linear_actuator_mount">
+      <visual>
+        <geometry>
+          <box size="${oneinch} ${oneinch} ${oneinch}"/>
+        </geometry>
+        <material name="white"/>
+      </visual>
+      <collision>
+        <geometry>
+          <box size="0 0 0"/>
+        </geometry>
+      </collision>
+      <xacro:default_inertial mass="0.001"/>
+    </link>
+    <joint name="${prefix}_upper_arm_to_upper_linear_actuator_mount" type="fixed">
+      <parent link="${prefix}_upper_arm"/>
+      <child link="${prefix}_upper_linear_actuator_mount"/>
+      <origin xyz="${upperlinactmntdist} ${reflect*linactmnthorizontallength/2} 0"/>
+    </joint>
+
+    <link name="${prefix}_lower_arm">
+      <visual>
+        <geometry>
+          <box size="${lowerarmlength} ${lowerarmwidth} ${lowerarmheight}"/>
+        </geometry>
+        <origin xyz="${lowerarmlength/2} 0 0" rpy="0 0 0"/>
+        <material name="blue"/>
+      </visual>
+      <collision>
+        <geometry>
+          <box size="0 0 0"/>
+        </geometry>
+      </collision>
+      <xacro:default_inertial mass="3"/>
+    </link>
+    <joint name="${prefix}_upperarm_to_lower_arm" type="fixed">
+      <parent link="${prefix}_upper_arm"/>
+      <child link="${prefix}_lower_arm"/>
+      <origin xyz="${upperarmlength} 0 0" rpy="0 ${pi-lowerarmangle} 0"/>
+    </joint>
+
+    <link name="${prefix}_lower_brace_bar">
+      <visual>
+        <geometry>
+          <box size="${spacebetweenmirrors/2} ${oneinch} ${oneinch}"/>
+        </geometry>
+        <origin xyz="${spacebetweenmirrors/4} 0 0"/>
+        <material name="green"/>
+      </visual>
+      <collision>
+        <geometry>
+          <box size="0 0 0"/>
+        </geometry>
+      </collision>
+      <xacro:default_inertial mass="0" />
+    </link>
+    <joint name="${prefix}_upper_arm_to_lower_arm_brace_bar" type="fixed">
+      <parent link="${prefix}_upper_arm"/>
+      <child link="${prefix}_lower_brace_bar"/>
+      <origin xyz="${upperarmlength} ${reflect*(-upperarmwidth/2)} 0" rpy="0 0 ${reflect*(-pi/2)}"/>
+    </joint>
+
+    <link name="${prefix}_scoop_actuator_mount_bar">
+      <visual>
+        <geometry>
+          <box size="${oneinch} ${oneinch} ${scooplinactmountbarlength}"/>
+        </geometry>
+        <material name="white"/>
+      </visual>
+      <collision>
+        <geometry>
+          <box size="0 0 0"/>
+        </geometry>
+      </collision>
+      <xacro:default_inertial mass="0.001" />
+    </link>
+    <joint name="to_${prefix}_scoop_actuator_mount_bar" type="fixed" >
+      <parent link="${prefix}_lower_brace_bar"/>
+      <child link="${prefix}_scoop_actuator_mount_bar" />
+      <origin xyz="${scooplinactmountbaroffset+oneinch/2+oneinch/2} ${reflect*oneinch} 0"/>
+    </joint>
+
+
+    <link name="${prefix}_scoop_axis">
+      <visual>
+        <geometry>
+          <box size="0 0 0"/>
+        </geometry>
+      </visual>
+      <xacro:default_inertial mass="0.001" />
+    </link>
+    <link name="${prefix}_scoop_back_plane">
+      <visual>
+        <geometry>
+          <box size="${scoopheight} ${scoopwidth/2} 0.005" />
+        </geometry>
+        <material name="green"/>
+        <origin xyz="${-scoopheight/2} ${-reflect*scoopwidth/4} 0" />
+      </visual>
+      <xacro:default_inertial mass="0.001" />
+    </link>
+    <link name="${prefix}_scoop_lower_plane">
+      <visual>
+        <geometry>
+          <box size="0.005 ${scoopwidth/2} ${scooplength}" />
+        </geometry>
+        <material name="red"/>
+        <origin xyz="0 ${-reflect*scoopwidth/4} ${scooplength/2}" />
+      </visual>
+      <xacro:default_inertial mass="0.001" />
+    </link>
+    <joint name="${prefix}_scoop_axis_to_scoop" type="fixed">
+      <parent link="${prefix}_scoop_axis"/>
+      <child link="${prefix}_scoop_back_plane"/>
+      <origin xyz="0 0 0"/>
+    </joint>
+    <joint name="${prefix}_scoop_plane_attach" type="fixed">
+      <parent link="${prefix}_scoop_back_plane"/>
+      <child link="${prefix}_scoop_lower_plane"/>
+      <origin xyz="0 0 0" rpy="0 ${pi/2-scoopplaneangle} 0"/>
+    </joint>
+    <joint name="${prefix}_lower_arm_to_scoop_axis" type="continuous">
+      <parent link="${prefix}_lower_arm"/>
+      <child link="${prefix}_scoop_axis"/>
+      <origin xyz="${lowerarmlength-scoopaxisbackfrombar} ${-reflect*lowerarmwidth/2} ${scoopaxisabovebar+oneinch/2}"/>
+      <axis xyz="0 1 0" rpy="0 0 0" />
+    </joint>
+
+    <transmission name="${prefix}_scoop_trans" type="SimpleTransmission">
+      <type>transmission_interface/SimpleTransmission</type>
+      <actuator name="$motor_${prefix}_scoop">
+        <mechanicalReduction>1</mechanicalReduction>
+      </actuator>
+      <joint name="${prefix}_lower_arm_to_scoop_axis">
+        <hardwareInterface>PositionJointInterface</hardwareInterface>
+      </joint>
+    </transmission>
+
+    <link name="${prefix}_edge_of_scoop">
+      <visual>
+        <geometry>
+          <box size="0 0 0" />
+        </geometry>
+        <material name="red"/>
+        <origin xyz="0 ${-reflect*scoopwidth/4} ${scooplength/2}" />
+      </visual>
+      <xacro:default_inertial mass="0.00001" />
+    </link>
+    <joint name="${prefix}_edge_of_scoop" type="fixed">
+      <parent link="${prefix}_scoop_lower_plane"/>
+      <child link="${prefix}_edge_of_scoop"/>
+      <origin xyz="0 0 ${scooplength}"/>
+    </joint>
+
+    <link name="${prefix}_scoop_actuator_mount">
+      <visual>
+        <geometry>
+          <box size="${oneinch} ${oneinch} ${oneinch}"/>
+        </geometry>
+        <material name="white"/>
+      </visual>
+    </link>
+    <joint name="${prefix}_scoop_actuator_mount_joint" type="fixed">
+      <parent link="${prefix}_scoop_back_plane"/>
+      <child link="${prefix}_scoop_actuator_mount"/>
+      <origin xyz="-${scoopheight-scoopactmountdown} ${-reflect*scoopactmountin} -${scoopactmountback}"/>
+    </joint>
+  </xacro:macro>
+
+  <xacro:side_base prefix="right" reflect="-1" />
+  <xacro:side_base prefix="left" reflect="1" />
+
+  <xacro:macro name="kinect" params="prefix parentlink">
+    <link name="${prefix}_kinect">
+      <inertial>
+        <mass value="0"/>
+        <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
+      </inertial>
+    </link>
+    <gazebo reference="${prefix}_kinect">
+      <material>Gazebo/Black</material>
+    </gazebo>
+    <joint name="${prefix}_toKinect" type="fixed">
+      <parent link="${parentlink}"/>
+      <child link="${prefix}_kinect"/>
+      <origin rpy="0 0 0" xyz="0.01 0 0.04"/>
+      <!--<origin rpy="0 0.4 0" xyz="0.01 0 0.04"/>-->
+      <!--change the middle number of the rpy on this line to adjust kinect pitch -->
+    </joint>
+    <joint name="${prefix}_camera_rgb_joint" type="fixed">
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <parent link="${prefix}_kinect"/>
+      <child link="${prefix}_camera_rgb_frame"/>
+    </joint>
+    <link name="${prefix}_camera_rgb_frame"/>
+    <joint name="${prefix}_camera_rgb_optical_joint" type="fixed">
+      <origin rpy="-1.57079632679 0 -1.57079632679" xyz="0 0 0"/>
+      <parent link="${prefix}_camera_rgb_frame"/>
+      <child link="${prefix}_camera_rgb_optical_frame"/>
+    </joint>
+    <link name="${prefix}_camera_rgb_optical_frame"/>
+    <joint name="${prefix}_camera_joint" type="fixed">
+      <origin rpy="0 0 0" xyz="-0.031 0.0125 -0.016"/>
+      <parent link="${prefix}_camera_rgb_frame"/>
+      <child link="${prefix}_camera_link"/>
+    </joint>
+    <link name="${prefix}_camera_link">
+      <visual>
+        <origin rpy="0 0 1.57079632679" xyz="0 0 0"/>
+        <geometry>
+          <mesh filename="package://simulation_2017/meshes/kinect.dae"/>
+        </geometry>
+      </visual>
+      <collision>
+        <origin rpy="0 0 0" xyz="0.0 0.0 0.0"/>
+        <geometry>
+          <box size="0.07271 0.27794 0.073"/>
+        </geometry>
+      </collision>
+      <inertial>
+        <mass value="0.564"/>
+        <origin xyz="0 0 0"/>
+        <inertia ixx="0.003881243" ixy="0.0" ixz="0.0" iyy="0.000498940" iyz="0.0" izz="0.003879257"/>
+      </inertial>
+    </link>
+    <joint name="${prefix}_camera_depth_joint" type="fixed">
+      <origin rpy="0 0 0" xyz="0 0.025 0"/>
+      <parent link="${prefix}_camera_rgb_frame"/>
+      <child link="${prefix}_camera_depth_frame"/>
+    </joint>
+    <link name="${prefix}_camera_depth_frame"/>
+    <joint name="${prefix}_camera_depth_optical_joint" type="fixed">
+      <origin rpy="-1.57079632679 0 -1.57079632679" xyz="0 0 0"/>
+      <parent link="${prefix}_camera_depth_frame"/>
+      <child link="${prefix}_camera_depth_optical_frame"/>
+    </joint>
+    <link name="${prefix}_camera_depth_optical_frame"/>
+    <gazebo reference="${prefix}_camera_link">
+      <sensor name="${prefix}_camera" type="depth">
+        <always_on>true</always_on>
+        <update_rate>20.0</update_rate>
+        <camera>
+          <horizontal_fov>1.0471975512</horizontal_fov>
+          <image>
+            <format>R8G8B8</format>
+            <width>640</width>
+            <height>480</height>
+          </image>
+          <clip>
+            <near>0.05</near>
+            <far>8.0</far>
+          </clip>
+        </camera>
+        <plugin filename="libgazebo_ros_openni_kinect.so" name="${prefix}_kinect_camera_controller">
+          <cameraName>${prefix}_camera</cameraName>
+          <alwaysOn>true</alwaysOn>
+          <updateRate>10</updateRate>
+          <imageTopicName>rgb/image_raw</imageTopicName>
+          <depthImageTopicName>depth/image_raw</depthImageTopicName>
+          <pointCloudTopicName>depth/points</pointCloudTopicName>
+          <cameraInfoTopicName>rgb/camera_info</cameraInfoTopicName>
+          <depthImageCameraInfoTopicName>depth/camera_info</depthImageCameraInfoTopicName>
+          <frameName>${prefix}_camera_depth_optical_frame</frameName>
+          <baseline>0.1</baseline>
+          <distortion_k1>0.0</distortion_k1>
+          <distortion_k2>0.0</distortion_k2>
+          <distortion_k3>0.0</distortion_k3>
+          <distortion_t1>0.0</distortion_t1>
+          <distortion_t2>0.0</distortion_t2>
+          <pointCloudCutoff>0.4</pointCloudCutoff>
+        </plugin>
+      </sensor>
+    </gazebo>
+  </xacro:macro>
+
+  <link name="rear_kinect_mount">
+    <visual>
+      <geometry>
+        <box size="${oneinch} ${oneinch} 0.001"/>
+      </geometry>
+      <material name="white"/>
+    </visual>
+  </link>
+  <joint name="to_rear_kinect_mount" type="fixed">
+    <parent link="base_link" />
+    <child link="rear_kinect_mount"/>
+    <origin xyz="-${controlsboxlength/2} 0 ${controlsboxheight/2+oneinch/2}" rpy="0 0 ${pi}"/>
+  </joint>
+
+  <xacro:kinect prefix="rear" parentlink="rear_kinect_mount"/>
+
+  <link name="front_kinect_mount">
+    <visual>
+      <geometry>
+        <box size="${oneinch} ${oneinch} 0.001"/>
+      </geometry>
+      <material name="white"/>
+    </visual>
+  </link>
+  <joint name="to_front_kinect_mount" type="fixed">
+    <parent link="base_link" />
+    <child link="front_kinect_mount"/>
+    <origin xyz="${controlsboxlength/2} 0 ${controlsboxheight/2+oneinch/2}" rpy="0 0 0"/>
+  </joint>
+
+  <xacro:kinect prefix="front" parentlink="front_kinect_mount"/>
+
+  <xacro:macro name="lidar" params="prefix link">
+      <!-- hokuyo -->
+      <gazebo reference="${link}">
+        <sensor name="${prefix}_lidar_sensor" type="ray">
+          <pose>0 0 0 0 0 0</pose>
+          <visualize>true</visualize>
+          <update_rate>40</update_rate>
+          <ray>
+            <scan>
+              <horizontal>
+                <samples>720</samples>
+                <resolution>1</resolution>
+                <!--<min_angle>-1.570796</min_angle>
+                <max_angle>1.570796</max_angle>-->
+                <min_angle>-1.75</min_angle>
+                <max_angle>1.75</max_angle>
+              </horizontal>
+            </scan>
+            <range>
+              <min>0.10</min>
+              <max>50.0</max>
+              <resolution>0.01</resolution>
+            </range>
+            <noise>
+              <type>gaussian</type>
+              <!-- Noise parameters based on published spec for Hokuyo laser
+                   achieving "+-30mm" accuracy at range < 10m.  A mean of 0.0m and
+                   stddev of 0.01m will put 99.7% of samples within 0.03m of the true
+                   reading. -->
+              <mean>0.0</mean>
+              <stddev>0.01</stddev>
+            </noise>
+          </ray>
+          <plugin filename="libgazebo_ros_laser.so" name="gazebo_ros_${prefix}_lidar_controller">
+            <topicName>${prefix}_scan</topicName>
+            <frameName>${link}</frameName>
+          </plugin>
+        </sensor>
+      </gazebo>
+  </xacro:macro>
+
+  <link name="lidar_mount">
+    <visual>
+      <geometry>
+        <box size="${hokuyolength+(2*oneinch)+sicklength} ${hokuyowidth+oneinch} ${lidarmountheight}"/>
+      </geometry>
+      <material name="green"/>
+    </visual>
+  </link>
+  <joint name="to_lidar_mount" type="fixed">
+    <parent link="base_link" />
+    <child link="lidar_mount"/>
+    <origin xyz="${controlsboxlength/2-(hokuyowidth+oneinch)/2-4*(oneinch)} 0 ${controlsboxheight/2+lidarmountheight/2}" rpy="0 0 ${pi/2}"/>
+  </joint>
+
+  <link name="hokuyo_lidar">
+    <visual>
+      <geometry>
+        <box size="${hokuyolength} ${hokuyowidth} ${hokuyoheight}"/>
+      </geometry>
+      <material name="black"/>
+    </visual>
+  </link>
+  <joint name="lidar_mount_to_hokuyo" type="fixed">
+    <parent link="lidar_mount"/>
+    <child link="hokuyo_lidar"/>
+    <origin xyz="${(hokuyolength+(2*oneinch)+sicklength)/2-hokuyolength/2} 0 ${hokuyoheight/2+lidarmountheight/2}"/>
+  </joint>
+  <xacro:lidar prefix="hokuyo" link="hokuyo_lidar"/>
+
+  <link name="sick_lidar">
+    <visual>
+      <geometry>
+        <box size="${sicklength} ${sickwidth} ${sickheight}"/>
+      </geometry>
+      <material name="white"/>
+    </visual>
+  </link>
+  <joint name="lidar_mount_to_sick" type="fixed">
+    <parent link="lidar_mount"/>
+    <child link="sick_lidar"/>
+    <origin xyz="-${(hokuyolength+(2*oneinch)+sicklength)/2-sicklength/2} 0 ${sickheight/2+lidarmountheight/2}" rpy="0 0 ${pi}"/>
+  </joint>
+  <xacro:lidar prefix="sick" link="sick_lidar"/>
+
+
+  <!-- Gazebo plugin for ROS Control -->
+  <gazebo>
+    <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+      <robotNamespace>/</robotNamespace>
+    </plugin>
+  </gazebo>
+
+</robot>
