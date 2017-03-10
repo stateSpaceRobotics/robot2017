@@ -59,7 +59,7 @@ def calc_goal_force(nav_goal, robot_pose):
         d_x = ALPHA * FIELD_SPREAD * math.cos(force_angle)
         d_y = ALPHA * FIELD_SPREAD * math.sin(force_angle)
 
-    return [d_x, d_y]
+    return (d_x, d_y)
 
 
 def wrap_angle(angle):
@@ -75,7 +75,7 @@ def calc_repulsive_force(obstacles, robot_pose):
     '''
     Given a list of obstacles and robot pose, calculate repulsive force
     '''
-    rep_force = [0, 0]
+    rep_force = (0, 0)
     OBST_THRESH = 0.01
     FIELD_SPREAD = 0.5
     LARGE_NUMBER = 99
@@ -97,8 +97,7 @@ def calc_repulsive_force(obstacles, robot_pose):
             # obstacle is far away, don't care about it
             d_x = 0
             d_y = 0
-        rep_force[0] += d_x
-        rep_force[1] += d_y
+        rep_force = (rep_force[0]+d_x, rep_force[1]+d_y)
     return rep_force
 
 
@@ -209,10 +208,13 @@ class PFieldNavigator(object):
                 attr_force = calc_goal_force(nav_goal, robot_pose)
                 print("Goal force: " + str(attr_force))
                 # Calculate repulsive force
+                repulsive_force = (0,0)
                 #repulsive_force = calc_repulsive_force(self.centroid_obstacles, robot_pose)
+
+                total_force = (attr_force[0]-repulsive_force[0], attr_force[1]-repulsive_force[1])
                 # Get final drive vector (goal, obstacle forces)
                 # Calculate twist message from drive vector
-                drive_cmd = self.drive_from_force(attr_force, robot_pose)
+                drive_cmd = self.drive_from_force(total_force, robot_pose)
                 self.drive_pub.publish(drive_cmd)
 
             #Beacon lost
@@ -240,8 +242,7 @@ class PFieldNavigator(object):
         force_mag = math.hypot(force[0], force[1])
         if force_mag == 0: return cmd
         # normalize force
-        force[0] = force[0] / float(force_mag)
-        force[1] = force[1] / float(force_mag)
+        force = (force[0] / float(force_mag), force[1] / float(force_mag))
         # convert quat orientation to eulers
         robot_orient = euler_from_quaternion([robot_pose.orientation.x, robot_pose.orientation.y, robot_pose.orientation.z, robot_pose.orientation.w]) 
         # Get force angle (in global space)
