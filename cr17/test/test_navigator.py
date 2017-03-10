@@ -19,11 +19,19 @@ class TestNavigator(unittest.TestCase):
 
     def test_at_goal(self):
         samePose = Point()
+        closePose = Point()
+        notCloseEnoughtPose = Point()
         differentPose = Point()
         robotPose = Pose()
 
         samePose.x = 1
         samePose.y = 12
+
+        closePose.x = 0.9
+        closePose.y = 12
+
+        notCloseEnoughtPose.x = 0.7
+        notCloseEnoughtPose.y = 11.1
 
         differentPose.x = 12
         differentPose.y = 1
@@ -32,6 +40,8 @@ class TestNavigator(unittest.TestCase):
         robotPose.position.y = 12
 
         self.assertTrue(navigator.at_goal(robotPose, samePose))
+        self.assertTrue(navigator.at_goal(robotPose, closePose))
+        self.assertFalse(navigator.at_goal(robotPose, notCloseEnoughtPose))
         self.assertFalse(navigator.at_goal(robotPose, differentPose))
 
     def test_calc_goal_force(self):
