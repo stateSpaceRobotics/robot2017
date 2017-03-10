@@ -13,7 +13,7 @@
         <collision name="Wall_5_Collision">
           <geometry>
             <box>
-              <size>7.38 0.2 0.6</size>
+              <size>7.38 0.02 0.6</size>
             </box>
           </geometry>
           <pose>0 0 0.3 0 -0 0</pose>
@@ -22,7 +22,7 @@
           <pose>0 0 0.3 0 -0 0</pose>
           <geometry>
             <box>
-              <size>7.38 0.2 0.6</size>
+              <size>7.38 0.02 0.6</size>
             </box>
           </geometry>
           <material>
@@ -38,7 +38,7 @@
         <collision name="Wall_6_Collision">
           <geometry>
             <box>
-              <size>3.78 0.2 0.6</size>
+              <size>3.78 0.02 0.6</size>
             </box>
           </geometry>
           <pose>0 0 0.3 0 -0 0</pose>
@@ -47,7 +47,7 @@
           <pose>0 0 0.3 0 -0 0</pose>
           <geometry>
             <box>
-              <size>3.78 0.2 0.6</size>
+              <size>3.78 0.02 0.6</size>
             </box>
           </geometry>
           <material>
@@ -63,7 +63,7 @@
         <collision name="Wall_7_Collision">
           <geometry>
             <box>
-              <size>7.38 0.2 0.6</size>
+              <size>7.38 0.02 0.6</size>
             </box>
           </geometry>
           <pose>0 0 0.3 0 -0 0</pose>
@@ -72,7 +72,7 @@
           <pose>0 0 0.3 0 -0 0</pose>
           <geometry>
             <box>
-              <size>7.38 0.2 0.6</size>
+              <size>7.38 0.02 0.6</size>
             </box>
           </geometry>
           <material>
@@ -88,7 +88,7 @@
         <collision name="Wall_8_Collision">
           <geometry>
             <box>
-              <size>3.78001 0.2 0.6</size>
+              <size>3.78001 0.02 0.6</size>
             </box>
           </geometry>
           <pose>0 0 0.3 0 -0 0</pose>
@@ -97,7 +97,7 @@
           <pose>0 0 0.3 0 -0 0</pose>
           <geometry>
             <box>
-              <size>3.78001 0.2 0.6</size>
+              <size>3.78001 0.02 0.6</size>
             </box>
           </geometry>
           <material>
@@ -108,6 +108,81 @@
           </material>
         </visual>
         <pose>0 7.38 0 0 0 0</pose>
+      </link>
+      <link name="starting_obstacle_line">
+        <collision name="starting_obstacle_line_Collision">
+          <geometry>
+            <box>
+              <size>0 0 0</size>
+            </box>
+          </geometry>
+          <pose>0 0 0 0 -0 0</pose>
+        </collision>
+        <visual name="starting_obstacle_line_Visual">
+          <pose>0 0 0 0 -0 0</pose>
+          <geometry>
+            <box>
+              <size>3.78001 0.1 0</size>
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Green</name>
+            </script>
+          </material>
+        </visual>
+        <pose>0 1.5 0 0 0 0</pose>
+      </link>
+      <link name="obstacle_midpoint_line">
+        <collision name="obstacle_midpoint_line_Collision">
+          <geometry>
+            <box>
+              <size>0 0 0</size>
+            </box>
+          </geometry>
+          <pose>0 0 0 0 -0 0</pose>
+        </collision>
+        <visual name="obstacle_midpoint_line_Visual">
+          <pose>0 0 0 0 -0 0</pose>
+          <geometry>
+            <box>
+              <size>3.78001 0.1 0</size>
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Red</name>
+            </script>
+          </material>
+        </visual>
+        <pose>0 2.97 0 0 0 0</pose>
+      </link>
+      <link name="obstacle_mining_line">
+        <collision name="obstacle_mining_line_Collision">
+          <geometry>
+            <box>
+              <size>0 0 0</size>
+            </box>
+          </geometry>
+          <pose>0 0 0 0 -0 0</pose>
+        </collision>
+        <visual name="obstacle_mining_line_Visual">
+          <pose>0 0 0 0 -0 0</pose>
+          <geometry>
+            <box>
+              <size>3.78001 0.1 0</size>
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Green</name>
+            </script>
+          </material>
+        </visual>
+        <pose>0 4.44 0 0 0 0</pose>
       </link>
       <static>1</static>
       <pose>0 0 0 0 0 0</pose>
@@ -178,7 +253,7 @@
 
     <include>
       <uri>model://ARUCO_board</uri>
-      <pose>0 0.1 0.335 1.5708 1.5708 0</pose>
+      <pose>0 0.01 0.335 1.5708 1.5708 0</pose>
     </include>
 
     <!-- Focus camera on the field-->
