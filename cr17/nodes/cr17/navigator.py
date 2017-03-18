@@ -27,6 +27,80 @@ BEACON_LOST_TOPIC = rospy.get_param("topics/beacon_lost", "beacon_lost")
 REACHED_GOAL_TOPIC = rospy.get_param("topics/reached_goal", "reached_goal")
 OBSTACLES_TOPIC = rospy.get_param("topics/obstacles","/obstacle_centroids")
 
+def at_goal(robot_pose, goal):
+    '''
+    Given a robot_pose and a goal coordinate, this node determines if robot is at the goal 
+    '''
+    # calc distance 
+    dist = math.sqrt((goal.x - robot_pose.position.x)**2 + (goal.y - robot_pose.position.y)**2)
+    at_goal = True if dist <= GOAL_THRESH else False
+    return at_goal
+
+def calc_goal_force(nav_goal, robot_pose):
+    '''
+    given a goal point and a robot pose, calculate and return x and y components of goal force
+    '''
+    FIELD_SPREAD = 10.0 # radius around goal where pfield is scaled
+    ALPHA = 1.0
+    # get distance between goal and robot
+    dist = math.sqrt((nav_goal.x - robot_pose.position.x)**2 + (nav_goal.y - robot_pose.position.y)**2)
+    # get angle to goal
+    angle_to_goal = math.atan2(nav_goal.y - robot_pose.position.y, nav_goal.x - robot_pose.position.x)
+    # get force angle
+    force_angle = wrap_angle(angle_to_goal)
+    # math the components
+    if dist < GOAL_THRESH:
+        d_x = 0
+        d_y = 0
+    elif (GOAL_THRESH <= dist) and (dist <= FIELD_SPREAD + GOAL_THRESH):
+        d_x = ALPHA * (dist - GOAL_THRESH) * math.cos(force_angle)
+        d_y = ALPHA * (dist - GOAL_THRESH) * math.sin(force_angle)
+    else: #dist > (FIELD_SPREAD + GOAL_THRESH)
+        d_x = ALPHA * FIELD_SPREAD * math.cos(force_angle)
+        d_y = ALPHA * FIELD_SPREAD * math.sin(force_angle)
+
+    return (d_x, d_y)
+
+
+def wrap_angle(angle):
+    #This function will take any angle and wrap it into the range [-pi, pi]
+    while angle >= math.pi:
+        angle = angle - 2 * math.pi
+        
+    while angle <= -math.pi:
+        angle = angle + 2 * math.pi
+    return angle
+
+def calc_repulsive_force(obstacles, robot_pose):
+    '''
+    Given a list of obstacles and robot pose, calculate repulsive force
+    '''
+    rep_force = (0, 0)
+    OBST_THRESH = 0.01
+    FIELD_SPREAD = 0.5
+    LARGE_NUMBER = 99
+    BETA = 1.0          # scale factor
+    for obstacle in obstacles:
+        # calculate distance between robot and obstacle
+        dist = math.sqrt((obstacle[0] - robot_pose.position.x)**2 + (obstacle[1] - robot_pose.position.y)**2)
+        # calculate angle between robot and obstacle
+        angle_to_obs = math.atan2(obstacle[1] - robot_pose.position.y, obstacle[0] - robot_pose.position.x)
+        if dist < OBST_THRESH:
+            # too close
+            d_x = LARGE_NUMBER if math.cos(angle_to_obs) < 0.0 else -LARGE_NUMBER
+            d_y = LARGE_NUMBER if math.sin(angle_to_obs) < 0.0 else -LARGE_NUMBER
+        elif (OBST_THRESH <= dist) and (dist <= FIELD_SPREAD + OBST_THRESH):
+            # field is scaled
+            d_x = -BETA * (FIELD_SPREAD + OBST_THRESH - dist) * math.cos(angle_to_obs)
+            d_y = -BETA * (FIELD_SPREAD + OBST_THRESH - dist) * math.sin(angle_to_obs)
+        else:
+            # obstacle is far away, don't care about it
+            d_x = 0
+            d_y = 0
+        rep_force = (rep_force[0]+d_x, rep_force[1]+d_y)
+    return rep_force
+
+
 class PFieldNavigator(object):
 
     def __init__(self):
@@ -123,7 +197,7 @@ class PFieldNavigator(object):
                 print(" **  Goal: \n" + str(nav_goal))
                 print(" ** Position: \n" + str(robot_pose.position))
                 # Check to see if at goal
-                if self.at_goal(robot_pose, nav_goal):
+                if at_goal(robot_pose, nav_goal):
                     # Robot has made it to goal.
                     self.reached_goal_pub.publish(Bool(True))
                 else:
@@ -131,13 +205,16 @@ class PFieldNavigator(object):
                     self.reached_goal_pub.publish(Bool(False))
 
                 # Calculate goal force
-                attr_force = self.calc_goal_force(nav_goal, robot_pose)
+                attr_force = calc_goal_force(nav_goal, robot_pose)
                 print("Goal force: " + str(attr_force))
                 # Calculate repulsive force
-                #repulsive_force = self.calc_repulsive_force(self.centroid_obstacles, robot_pose)
+                repulsive_force = (0,0)
+                #repulsive_force = calc_repulsive_force(self.centroid_obstacles, robot_pose)
+
+                total_force = (attr_force[0]-repulsive_force[0], attr_force[1]-repulsive_force[1])
                 # Get final drive vector (goal, obstacle forces)
                 # Calculate twist message from drive vector
-                drive_cmd = self.drive_from_force(attr_force, robot_pose)
+                drive_cmd = self.drive_from_force(total_force, robot_pose)
                 self.drive_pub.publish(drive_cmd)
 
             #Beacon lost
@@ -153,15 +230,6 @@ class PFieldNavigator(object):
 
             rate.sleep()
 
-    def at_goal(self, robot_pose, goal):
-        '''
-        Given a robot_pose and a goal coordinate, this node determines if robot is at the goal 
-        '''
-        # calc distance 
-        dist = math.sqrt((goal.x - robot_pose.position.x)**2 + (goal.y - robot_pose.position.y)**2)
-        at_goal = True if dist <= GOAL_THRESH else False
-        return at_goal
-
 
     def drive_from_force(self, force, robot_pose):
         '''
@@ -174,8 +242,7 @@ class PFieldNavigator(object):
         force_mag = math.hypot(force[0], force[1])
         if force_mag == 0: return cmd
         # normalize force
-        force[0] = force[0] / float(force_mag)
-        force[1] = force[1] / float(force_mag)
+        force = (force[0] / float(force_mag), force[1] / float(force_mag))
         # convert quat orientation to eulers
         robot_orient = euler_from_quaternion([robot_pose.orientation.x, robot_pose.orientation.y, robot_pose.orientation.z, robot_pose.orientation.w]) 
         # Get force angle (in global space)
@@ -196,7 +263,7 @@ class PFieldNavigator(object):
         	self.previousDirection = 1.0
 
         # get difference to robot's current yaw
-        angle_diff = self.wrap_angle(force_angle - robot_orient[2])
+        angle_diff = wrap_angle(force_angle - robot_orient[2])
         print("Robot Yaw: " + str(math.degrees(robot_orient[2])))
         print("Force angle: " + str(math.degrees(force_angle)))
         print("Force Magnitude: " + str(force_mag))
@@ -217,7 +284,6 @@ class PFieldNavigator(object):
     def _transform_for_ryan(self, ang_vel, lin_vel):
         '''
         Given angular velocity and linear velocity, transform for ryan (-7, 7)
-        Contact: Ryan Smith, (228) 623 - 9492
         '''
         # Normalize, then multiply by seven
         mag = math.sqrt(ang_vel**2 + lin_vel**2)
@@ -225,72 +291,6 @@ class PFieldNavigator(object):
         lin_vel /= mag
         return [ang_vel * RYAN_CONSTANT, lin_vel * RYAN_CONSTANT]
 
-
-    def calc_goal_force(self, nav_goal, robot_pose):
-        '''
-        given a goal point and a robot pose, calculate and return x and y components of goal force
-        '''
-        FIELD_SPREAD = 10.0 # radius around goal where pfield is scaled
-        ALPHA = 1.0
-        # get distance between goal and robot
-        dist = math.sqrt((nav_goal.x - robot_pose.position.x)**2 + (nav_goal.y - robot_pose.position.y)**2)
-        # get angle to goal
-        angle_to_goal = math.atan2(nav_goal.y - robot_pose.position.y, nav_goal.x - robot_pose.position.x)
-        # get force angle
-        force_angle = self.wrap_angle(angle_to_goal)
-        # math the components
-        if dist < GOAL_THRESH:
-            d_x = 0
-            d_y = 0
-        elif (GOAL_THRESH <= dist) and (dist <= FIELD_SPREAD + GOAL_THRESH):
-            d_x = ALPHA * (dist - GOAL_THRESH) * math.cos(force_angle)
-            d_y = ALPHA * (dist - GOAL_THRESH) * math.sin(force_angle)
-        else: #dist > (FIELD_SPREAD + GOAL_THRESH)
-            d_x = ALPHA * FIELD_SPREAD * math.cos(force_angle)
-            d_y = ALPHA * FIELD_SPREAD * math.sin(force_angle)
-
-        return [d_x, d_y]
-
-    def calc_repulsive_force(self, obstacles, robot_pose):
-        '''
-        Given a list of obstacles and robot pose, calculate repulsive force
-        '''
-        rep_force = [0, 0]
-        OBST_THRESH = 0.01
-        FIELD_SPREAD = 0.5
-        LARGE_NUMBER = 99
-        BETA = 1.0          # scale factor
-        for obstacle in obstacles:
-            # calculate distance between robot and obstacle
-            dist = math.sqrt((obstacle[0] - robot_pose.position.x)**2 + (obstacle[1] - robot_pose.position.y)**2)
-            # calculate angle between robot and obstacle
-            angle_to_obs = math.atan2(obstacle[1] - robot_pose.position.y, obstacle[0] - robot_pose.position.x)
-            if dist < OBST_THRESH:
-                # too close
-                d_x = LARGE_NUMBER if math.cos(angle_to_obs) < 0.0 else -LARGE_NUMBER
-                d_y = LARGE_NUMBER if math.sin(angle_to_obs) < 0.0 else -LARGE_NUMBER
-            elif (OBST_THRESH <= dist) and (dist <= FIELD_SPREAD + OBST_THRESH):
-                # field is scaled
-                d_x = -BETA * (FIELD_SPREAD + OBST_THRESH - dist) * math.cos(angle_to_obs)
-                d_y = -BETA * (FIELD_SPREAD + OBST_THRESH - dist) * math.sin(angle_to_obs)
-            else:
-                # obstacle is far away, don't care about it
-                d_x = 0
-                d_y = 0
-            rep_force[0] += d_x
-            rep_force[1] += d_y
-        return rep_force
-
-
-
-    def wrap_angle(self, angle):
-        #This function will take any angle and wrap it into the range [-pi, pi]
-        while angle >= math.pi:
-            angle = angle - 2 * math.pi
-            
-        while angle <= -math.pi:
-            angle = angle + 2 * math.pi
-        return angle
 
 if __name__ == "__main__":
     navigator = PFieldNavigator()
