@@ -6,18 +6,20 @@ from cr17.msg import wheelData, scoopControl
 import os
 import sys
 
-#IMPORTANT!! These must be uncommented to work with the Mbed. Only uncommented for Travis-CLI testing
-#import usb.core
-#import usb.util
- 
+try:
+    import usb.core
+    import usb.util
+except ImportError:
+	print "Error should be expected IF using Travis-CLI"
+
 from time import sleep
 import random
 
 '''
 Sends low-level commands(scoop, arm, linear velocity, angular velocity) to Mbed over USB.
-Also accepts speed values from Mbed for each wheel, and publishes to the wheel_speed topic. 
+Also accepts speed values from Mbed for each wheel, and publishes to the wheel_speed topic.
 
-This node must be run under su privelages. I've been doing it using sudo su, then the command to run the node. 
+This node must be run under su privelages. I've been doing it using sudo su, then the command to run the node.
 '''
 
 ##Send to MBed Package Description(8 bytes)
