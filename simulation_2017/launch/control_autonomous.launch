@@ -12,8 +12,6 @@
           <arg name="transform_topic" default="/ar_multi_board/transform" />
       </include>-->
 
-    <!--<param name="magic_modelNamePrefix" value="r2d2" />-->
-
     <rosparam command="load" file="$(find cr17)/param/beacon_localization.yaml"/>
     <rosparam command="load" file="$(find cr17)/param/topics.yaml"/>
 

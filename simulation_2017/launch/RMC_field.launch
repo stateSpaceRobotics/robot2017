@@ -31,9 +31,7 @@
     configuration should be loaded, including controllers -->
     <rosparam command="load" file="$(find simulation_2017)/config/control_cr17.yaml"/>
 
-    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher"/>
     <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher"/>
-
 
     <!-- This node loads the two controllers into a controller manager (real or simulated). The
     controllers are defined in config/control.yaml -->
