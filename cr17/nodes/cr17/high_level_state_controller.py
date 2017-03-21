@@ -38,7 +38,7 @@ class high_level_state_controller(object):
         rospy.init_node("high_level_state_controller")
 
         self.state_pub = rospy.Publisher(STATE_TOPIC, String, queue_size=10)
-        self.puber = rospy.Publisher('/home', Bool, queue_size=10)
+        self.path_pub_toggle_direction = rospy.Publisher('/temp_path_toggle_selector', Bool, queue_size=10)
 
         self.pose = Pose()
         self.pathPoses = []     #TODO: maybe remove, send entire current path to navigator
@@ -152,6 +152,11 @@ class high_level_state_controller(object):
 
 
             elif(self.autostate == "F_OBSTACLE_FIELD"):
+                msg = Bool()
+                msg.data = False
+                self.path_pub_toggle_direction.publish(msg)
+                rospy.logwarn("Publshing out path desire.")
+
                 if(len(self.pathPoses) != 0):
                     if(self.close_to(self.pathPoses[self.curPathIndex])):
                         self.curPathIndex += 1
@@ -161,6 +166,11 @@ class high_level_state_controller(object):
                 self.arm_drive_state()
 
             elif(self.autostate == "MINING_BEHAVIOR"):
+                msg = Bool()
+                msg.data = True
+                self.path_pub_toggle_direction.publish(msg)
+                rospy.logwarn("Publishing in path desire.")
+
                 #first prepare to mine (so the scoop is going down while the robot is slowly driving forward)
                 if not self.miningReady:
                     self.miningReady = True
@@ -235,11 +245,6 @@ class high_level_state_controller(object):
             if(self.autostate == "INIT"):
                 if(True):#change to some actual check
                     self.autostate = "F_OBSTACLE_FIELD"
-
-                    msg = Bool()
-                    msg.data = False
-                    self.puber.publish(msg)
-                    rospy.logwarn("Publishing out path desire.")
             elif(self.autostate == "F_OBSTACLE_FIELD"):
                 if(self.pose.position.y >= Y_IN_MINING_AREA):
                     self.autostate = "MINING_BEHAVIOR"
@@ -247,12 +252,6 @@ class high_level_state_controller(object):
                 if(not self.autonomyEnabled or (self.pose.position.y < Y_IN_MINING_AREA - .3)):
                     self.autostate = "B_OBSTACLE_FIELD"
                     self.minePath = None
-
-                    msg = Bool()
-                    msg.data = True
-                    self.puber.publish(msg)
-                    rospy.logwarn("Publishing in path desire.")
-
             elif(self.autostate == "B_OBSTACLE_FIELD"):
                 if(self.pose.position.y <= Y_IN_DOCKING_AREA):
                     self.autostate = "DOCKING"
@@ -263,11 +262,6 @@ class high_level_state_controller(object):
                 if(dumping_complete or (self.pose.position.y >= Y_IN_DUMP_RANGE)):
                     self.autostate = "F_OBSTACLE_FIELD"
                     self.dumpTimer = None
-
-                    msg = Bool()
-                    msg.data = False
-                    self.puber.publish(msg)
-                    rospy.logwarn("Publshing out path desire.")
             else:
                 self.autostate = "INIT"
 

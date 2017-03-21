@@ -18,7 +18,7 @@ class PathPublisher(object):
 
         self.path = Path()
         self.path_pub = rospy.Publisher(PATH_TOPIC, Path, queue_size = 10)
-        self.path_sub = rospy.Subscriber('/home', Bool, self.pose_srv)
+        rospy.Subscriber('/temp_path_toggle_selector', Bool, self.pose_toggle_selector)
 
     def run(self):
         point1 = PoseStamped()
@@ -39,7 +39,7 @@ class PathPublisher(object):
 
         rospy.spin()
 
-    def pose_srv(self, msg):
+    def pose_toggle_selector(self, msg):
         if msg.data:
             point1 = PoseStamped()
             point1.pose.position.x = POINT_2_X
