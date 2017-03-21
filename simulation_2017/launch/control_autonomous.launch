@@ -17,12 +17,13 @@
 
     <node name="navigator" pkg="cr17" type="navigator.py">
         <remap from="cmd_vel" to="/cr17_diff_drive_controller/cmd_vel"/>
+        <remap from="/beacon_localization_pose" to="/robot/standard_pose"/>
     </node>
 
     <node name="beacon_localization" pkg="cr17" type="beacon_localization.py"/>
 
     <node name="high_level_state_controller" pkg="cr17" type="high_level_state_controller.py">
-        <remap from="/filtered_pose" to="/robot/standard_pose"/>
+        <remap from="/beacon_localization_pose" to="/robot/standard_pose"/>
     </node>
 
     <node name="path_pub" pkg="cr17" type="path_pub.py"/>

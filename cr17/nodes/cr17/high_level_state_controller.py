@@ -26,7 +26,7 @@ X_POS_DUMP = 0
 Y_POS_DUMP = 0.5
 
 IS_CLOSE_DIST = 0.4
-ANGLES_TO_MINE = [0, 30, -30, 60, -60]
+ANGLES_TO_MINE = [0, 15, -15, 30, -30, 45, -45, 60, -60]
 
 ######################################################################################################
 #TODO: add stuff for getting stuck
@@ -38,7 +38,6 @@ class high_level_state_controller(object):
         rospy.init_node("high_level_state_controller")
 
         self.state_pub = rospy.Publisher(STATE_TOPIC, String, queue_size=10)
-        self.path_pub_toggle_direction = rospy.Publisher('/temp_path_toggle_selector', Bool, queue_size=10)
 
         self.pose = Pose()
         self.pathPoses = []     #TODO: maybe remove, send entire current path to navigator
@@ -110,6 +109,9 @@ class high_level_state_controller(object):
         self.arm_pub.publish(newMsg)
 
     def calculate_mining_path(self, angle):
+        startPose = PoseStamped()
+        startPose.pose.position.x = self.pose.position.x
+        startPose.pose.position.y =Y_IN_MINING_AREA - 0.4#TODO: make this better, or improve the state transitions, this is so that the mining state will be left
         start_x = self.pose.position.x
         start_y = self.pose.position.y
 
@@ -118,12 +120,15 @@ class high_level_state_controller(object):
         end_x = start_x + ( MINING_DISTANCE * math.sin(angle_rads))
         end_y = start_y + ( MINING_DISTANCE * math.cos(angle_rads))
 
+        if abs(end_x) > 1.2:
+            end_x = abs(end_x)/end_x * 1.2  #so it won't run into the wall
+
         path = []
         endPose = PoseStamped()
         endPose.pose.position.x = end_x
         endPose.pose.position.y = end_y
 
-        path.append(self.pose)
+        path.append(startPose)
         path.append(endPose)
         return path
 
@@ -145,18 +150,13 @@ class high_level_state_controller(object):
         while not rospy.is_shutdown():
             #Act on the autoState
             if(self.autostate == "INIT"):
-                pass 
+                pass
                 ######################################################################################################
                 #TODO: add code to orient the robot properly
                 ######################################################################################################
 
 
             elif(self.autostate == "F_OBSTACLE_FIELD"):
-                msg = Bool()
-                msg.data = False
-                self.path_pub_toggle_direction.publish(msg)
-                rospy.logwarn("Publshing out path desire.")
-
                 if(len(self.pathPoses) != 0):
                     if(self.close_to(self.pathPoses[self.curPathIndex])):
                         self.curPathIndex += 1
@@ -166,11 +166,6 @@ class high_level_state_controller(object):
                 self.arm_drive_state()
 
             elif(self.autostate == "MINING_BEHAVIOR"):
-                msg = Bool()
-                msg.data = True
-                self.path_pub_toggle_direction.publish(msg)
-                rospy.logwarn("Publishing in path desire.")
-
                 #first prepare to mine (so the scoop is going down while the robot is slowly driving forward)
                 if not self.miningReady:
                     self.miningReady = True
@@ -186,11 +181,12 @@ class high_level_state_controller(object):
                         self.miningAngleIndex += 1
                         if(self.miningAngleIndex >= len(ANGLES_TO_MINE)):
                             self.miningAngleIndex = 0
+                        self.miningPathIndex = min(1, len(self.minePath) - 1) #skip the first point when going forward
 
                     if(self.close_to(self.minePath[self.miningPathIndex])):
                         self.miningPathIndex += 1
                         if (self.miningPathIndex >= len(self.minePath)):
-                            self.minePath = len(self.minePath) - 1
+                            self.miningPathIndex = len(self.minePath) - 1
                     self.goal_pub.publish(self.minePath[self.miningPathIndex])
 
                     if(self.close_to(self.minePath[len(self.minePath) - 1])):
@@ -203,8 +199,8 @@ class high_level_state_controller(object):
                     if (self.close_to(self.minePath[self.miningPathIndex])):
                         self.miningPathIndex -= 1
                         if (self.miningPathIndex < 0):
-                            self.minePath = 0
-                    self.goal_pub(self.minePath[self.miningPathIndex])
+                            self.miningPathIndex = 0
+                    self.goal_pub.publish(self.minePath[self.miningPathIndex])
 
                 #once the beginning has been reached again
 
@@ -241,6 +237,7 @@ class high_level_state_controller(object):
             #TODO: add code to turn the robot around
             ######################################################################################################
 
+
             #advance the autostate
             if(self.autostate == "INIT"):
                 if(True):#change to some actual check
@@ -248,13 +245,16 @@ class high_level_state_controller(object):
             elif(self.autostate == "F_OBSTACLE_FIELD"):
                 if(self.pose.position.y >= Y_IN_MINING_AREA):
                     self.autostate = "MINING_BEHAVIOR"
+                    self.curPathIndex = len(self.pathPoses) - 1
             elif(self.autostate == "MINING_BEHAVIOR"):
-                if(not self.autonomyEnabled or (self.pose.position.y < Y_IN_MINING_AREA - .3)):
+                if( not self.autonomyEnabled or (self.pose.position.y < Y_IN_MINING_AREA - .3) ):
                     self.autostate = "B_OBSTACLE_FIELD"
                     self.minePath = None
+                    self.miningDone = False
             elif(self.autostate == "B_OBSTACLE_FIELD"):
                 if(self.pose.position.y <= Y_IN_DOCKING_AREA):
                     self.autostate = "DOCKING"
+                    self.curPathIndex = 0
             elif(self.autostate == "DOCKING"):
                 if(self.pose.position.y < Y_IN_DUMP_RANGE):
                     self.autostate = "DUMPING"
@@ -265,7 +265,6 @@ class high_level_state_controller(object):
             else:
                 self.autostate = "INIT"
 
-            # print(self.autostate)
             self.state_pub.publish(self.autostate)
             rate.sleep()
 

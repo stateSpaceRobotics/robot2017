@@ -40,7 +40,7 @@ class PFieldNavigator(object):
         while i < len(data.name):
             if (data.name[i]).startswith(MODELPREFIX):
                 name = data.name[i]
-                # pose = data.pose[i]
+                pose.pose = data.pose[i]
                 twist = data.twist[i]
                 odom = Odometry()
                 odom.pose.pose = pose

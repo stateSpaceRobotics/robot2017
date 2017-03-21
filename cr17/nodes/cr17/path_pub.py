@@ -18,7 +18,6 @@ class PathPublisher(object):
 
         self.path = Path()
         self.path_pub = rospy.Publisher(PATH_TOPIC, Path, queue_size = 10)
-        rospy.Subscriber('/temp_path_toggle_selector', Bool, self.pose_toggle_selector)
 
     def run(self):
         point1 = PoseStamped()
@@ -38,34 +37,6 @@ class PathPublisher(object):
             rate.sleep()
 
         rospy.spin()
-
-    def pose_toggle_selector(self, msg):
-        if msg.data:
-            point1 = PoseStamped()
-            point1.pose.position.x = POINT_2_X
-            point1.pose.position.y = POINT_2_Y
-            point2 = PoseStamped()
-            point2.pose.position.x = 0
-            point2.pose.position.y = 0
-
-            self.path = Path()
-            self.path.poses = []
-            self.path.poses.append(point1)
-            self.path.poses.append(point2)
-            rospy.logwarn('Setting path to return')
-        else:
-            point1 = PoseStamped()
-            point1.pose.position.x = POINT_1_X
-            point1.pose.position.y = POINT_1_Y
-            point2 = PoseStamped()
-            point2.pose.position.x = POINT_2_X
-            point2.pose.position.y = POINT_2_Y
-
-            self.path.poses = []
-            self.path.poses.append(point1)
-            self.path.poses.append(point2)
-            rospy.logwarn('Setting path to go out')
-
 
 if __name__ == "__main__":
     path_pubber = PathPublisher()
