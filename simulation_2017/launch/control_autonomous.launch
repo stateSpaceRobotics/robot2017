@@ -13,6 +13,7 @@
       </include>-->
 
     <rosparam command="load" file="$(find cr17)/param/beacon_localization.yaml"/>
+    <rosparam command="load" file="$(find simulation_2017)/param/sim_scoop_config.yaml"/>
     <rosparam command="load" file="$(find cr17)/param/topics.yaml"/>
 
     <node name="navigator" pkg="cr17" type="navigator.py">
@@ -21,6 +22,7 @@
     </node>
 
     <node name="beacon_localization" pkg="cr17" type="beacon_localization.py"/>
+    <node name="sim_scoop_controller" pkg="simulation_2017" type="sim_scoop_controller.py"/>
 
     <node name="high_level_state_controller" pkg="cr17" type="high_level_state_controller.py">
         <remap from="/beacon_localization_pose" to="/robot/standard_pose"/>
