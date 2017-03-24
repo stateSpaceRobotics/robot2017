@@ -22,7 +22,7 @@ GOAL_THRESH         = 0.1       # radius around goal that it's okay to stop in
 ######################################
 DRIVE_TOPIC = rospy.get_param("topics/drive_cmds", "cmd_vel")
 GOAL_TOPIC = rospy.get_param("topics/navigation_goals", "nav_goal")
-ROBOPOSE_TOPIC = rospy.get_param("topics/particleFilter_pose_out", "beacon_localization_pose")
+ROBOPOSE_TOPIC = rospy.get_param("topics/localization_pose")
 BEACON_LOST_TOPIC = rospy.get_param("topics/beacon_lost", "beacon_lost")
 REACHED_GOAL_TOPIC = rospy.get_param("topics/reached_goal", "reached_goal")
 OBSTACLES_TOPIC = rospy.get_param("topics/obstacles","/obstacle_centroids")
@@ -127,7 +127,7 @@ class PFieldNavigator(object):
         ######################################
         rospy.Subscriber(ROBOPOSE_TOPIC, PoseStamped, self.robot_pose_callback)
         rospy.Subscriber(GOAL_TOPIC, PoseStamped, self.nav_goal_callback)
-        rospy.Subscriber(BEACON_LOST_TOPIC, Bool, self.beacon_lost_callback)
+        rospy.Subscriber(BEACON_LOST_TOPIC, Bool, self.beacon_lost_callback) #TODO: remove
         rospy.Subscriber(OBSTACLES_TOPIC, PointCloud, self.obstacle_callback)
 
     def nav_goal_callback(self, data):
@@ -187,7 +187,7 @@ class PFieldNavigator(object):
         # work hard doing good stuff
         while not rospy.is_shutdown():
         	#New pose and the beacon is identified
-            if self.received_pose and not self.beacon_lost:
+            if self.received_pose:
                 self.received_pose = False
                 # grab current goal and pose information
                 nav_goal = self.current_goal
@@ -211,20 +211,11 @@ class PFieldNavigator(object):
                 repulsive_force = (0,0)
                 #repulsive_force = calc_repulsive_force(self.centroid_obstacles, robot_pose)
 
-                total_force = (attr_force[0]-repulsive_force[0], attr_force[1]-repulsive_force[1])
+                total_force = attr_force#(attr_force[0]-repulsive_force[0], attr_force[1]-repulsive_force[1])
                 # Get final drive vector (goal, obstacle forces)
                 # Calculate twist message from drive vector
                 drive_cmd = self.drive_from_force(total_force, robot_pose)
                 self.drive_pub.publish(drive_cmd)
-
-            #Beacon lost
-            elif self.beacon_lost:
-                print("Beacon Lost")
-                # the beacon is lost, turn search for beacon
-                self.received_pose = False
-               	cmd = Twist()
-               	cmd.angular.z = 6
-               	self.drive_pub.publish(cmd)
             else:
                 pass
 
@@ -248,7 +239,7 @@ class PFieldNavigator(object):
         # Get force angle (in global space)
         force_angle = math.atan2(force[1], force[0])
         # put force angle in robot space
-        force_angle = -1 * (force_angle - (math.pi / 2.0))
+        force_angle = force_angle - (math.pi / 2.0)  #This originally was multiplied by -1 (3/21/17), I think I remember running into this previous years, where gazebo and stage have different yaw directions
 
         #this is for when the force is behind the robot
         signed_lin_vel = LINEAR_SPEED  #this number needs to be changed, we don't want it to move forward quickly while turning, so it should be affected by angular velocity
