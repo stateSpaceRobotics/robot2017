@@ -20,11 +20,11 @@
   
   <xacro:property name="armbaselength" value="${oneinch*2}" />
   <xacro:property name="armbasewidth" value="${oneinch}" />
-  <xacro:property name="armbaseheight" value="${oneinch*7}" />
+  <xacro:property name="armbaseheight" value="${oneinch*19}" />
   
   <xacro:property name="controlsboxlength" value="${oneinch*14.25}" />
   <xacro:property name="controlsboxwidth" value="${oneinch*18}" />
-  <xacro:property name="controlsboxheight" value="${oneinch*7}" />
+  <xacro:property name="controlsboxheight" value="${oneinch*14}" />
 
   <xacro:property name="wheeldiam" value="${oneinch*12}" />
   <xacro:property name="wheelwidth" value="${oneinch*3}" />

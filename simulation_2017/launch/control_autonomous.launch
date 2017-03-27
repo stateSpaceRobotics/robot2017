@@ -32,4 +32,6 @@
 
     <node name="magic_odomFromGazebo" pkg="simulation_2017" type="magic_odomFromGazebo.py"/>
 
+    <include file="$(find cr17)/launch/move_base.launch"/>
+
 </launch>

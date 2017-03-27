@@ -5,5 +5,5 @@ inflation_radius: 0.55
 
 observation_sources: front_kinect rear_kinect
 
-front_kinect: {sensor_frame: front_camera_depth_optical_frame, data_type: PointCloud, topic: /front_camera/depth/points, marking: true, clearing: true}
-rear_kinect: {sensor_frame: rear_camera_depth_optical_frame, data_type: PointCloud, topic: /rear_camera/depth/points, marking: true, clearing: true}
+front_kinect: {sensor_frame: front_camera_depth_optical_frame, data_type: PointCloud2, topic: /front_camera/depth/points, marking: true, clearing: true}
+rear_kinect: {sensor_frame: rear_camera_depth_optical_frame, data_type: PointCloud2, topic: /rear_camera/depth/points, marking: true, clearing: true}
