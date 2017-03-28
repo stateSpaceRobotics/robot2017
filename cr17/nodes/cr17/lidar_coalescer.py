@@ -7,13 +7,13 @@ class LidarCoalescer(object):
     def __init__(self):
         rospy.init_node('lidar_coalescer')
 
-        self.left_lidar_topic = rospy.get_param("topics/left_lidar_topic")
-        self.right_lidar_topic = rospy.get_param("topics/right_lidar_topic")
+        self.hokuyo_lidar_topic = rospy.get_param("topics/lidar/hokuyo")
+        self.sick_lidar_topic = rospy.get_param("topics/lidar/sick")
         self.scan_topic = rospy.get_param("beacon_localization/scan_topic")
 
         # ROS Subscribers
-        self.hokuyo_sub = rospy.Subscriber(self.right_lidar_topic, LaserScan, self.hokuyo_callback, queue_size=10)
-        self.sick_sub = rospy.Subscriber(self.left_lidar_topic, LaserScan, self.sick_callback, queue_size=10)
+        self.hokuyo_sub = rospy.Subscriber(self.hokuyo_lidar_topic, LaserScan, self.hokuyo_callback, queue_size=10)
+        self.sick_sub = rospy.Subscriber(self.sick_lidar_topic, LaserScan, self.sick_callback, queue_size=10)
 
         # ROS Publishers
         self.scan_pub = rospy.Publisher(self.scan_topic, LaserScan, queue_size=10)

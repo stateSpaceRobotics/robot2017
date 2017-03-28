@@ -6,3 +6,4 @@ beacon_localization:
     right_post_loc: [0.686, 0]
     post_width: 0.223
     post_width_err: 0.4
+    max_range: 15   # Max Scan range to consider
