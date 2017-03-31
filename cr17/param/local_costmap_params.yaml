@@ -4,7 +4,7 @@ local_costmap:
   update_frequency: 5.0
   publish_frequency: 2.0
   static_map: false
-  rolling_window: false #default in setup is true, but we are in a small set space
+  rolling_window: true #default in setup is true, but we are in a small set space
   width: 4.0
   height: 8.0
   resolution: 0.05

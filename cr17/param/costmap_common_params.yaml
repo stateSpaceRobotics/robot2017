@@ -1,9 +1,9 @@
 obstacle_range: 3.0
 raytrace_range: 3.5
-footprint: [[0.3301, 1.18], [0.3301, -0.282575], [-0.3301, -0.282575], [-0.3301, 1.18]] #back is 0.282575 backedge from base_link center 1.18m forward  sides are 0.3301
+footprint: [[1.18, 0.3301], [-0.282575, 0.3301], [-0.282575, -0.3301], [1.18,-0.3301]] #back is 0.282575 backedge from base_link center 1.18m forward  sides are 0.3301
 inflation_radius: 0.55
 
 observation_sources: front_kinect rear_kinect
 
-front_kinect: {sensor_frame: front_camera_depth_optical_frame, data_type: PointCloud2, topic: /front_camera/depth/points, marking: true, clearing: true}
-rear_kinect: {sensor_frame: rear_camera_depth_optical_frame, data_type: PointCloud2, topic: /rear_camera/depth/points, marking: true, clearing: true}
+front_kinect: {max_obstacle_height: 0.35, min_obstacle_height: 0.06, data_type: PointCloud2, topic: /front_camera/depth/points, marking: true, clearing: true}
+rear_kinect: {max_obstacle_height: 0.35, min_obstacle_height: 0.06, data_type: PointCloud2, topic: /rear_camera/depth/points, marking: true, clearing: true}

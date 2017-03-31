@@ -17,7 +17,7 @@
     <rosparam command="load" file="$(find cr17)/param/topics.yaml"/>
 
     <node name="navigator" pkg="cr17" type="navigator.py">
-        <remap from="cmd_vel" to="/cr17_diff_drive_controller/cmd_vel"/>
+        <!--<remap from="cmd_vel" to="/cr17_diff_drive_controller/cmd_vel"/>-->
         <remap from="/beacon_localization_pose" to="/robot/standard_pose"/>
     </node>
 

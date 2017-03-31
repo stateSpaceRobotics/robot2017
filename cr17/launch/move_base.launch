@@ -11,5 +11,7 @@
     <rosparam file="$(find cr17)/param/local_costmap_params.yaml" command="load" />
     <rosparam file="$(find cr17)/param/global_costmap_params.yaml" command="load" />
     <rosparam file="$(find cr17)/param/base_local_planner_params.yaml" command="load" />
+    <remap from="/move_base_simple/goal" to="/nav_goal" />
+    <remap from="cmd_vel" to="/cr17_diff_drive_controller/cmd_vel"/>
   </node>
 </launch>

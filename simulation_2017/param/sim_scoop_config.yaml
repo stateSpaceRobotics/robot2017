@@ -1,5 +1,5 @@
 scoop_config:
-  driving_arm_angle: 0
+  driving_arm_angle: -50   #0
   driving_scoop_angle: -20
   pre_dig_arm_angle: 70
   pre_dig_scoop_angle: 100

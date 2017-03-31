@@ -72,6 +72,8 @@ class high_level_state_controller(object):
 
     def path_sub(self, data):
         self.pathPoses = data.poses
+        for each in self.pathPoses:
+            each.header.frame_id = "map"
 
     def arm_drive_state(self):
         newMsg = scoopControl()
@@ -110,8 +112,13 @@ class high_level_state_controller(object):
 
     def calculate_mining_path(self, angle):
         startPose = PoseStamped()
+        startPose.header.frame_id = "map"
         startPose.pose.position.x = self.pose.position.x
         startPose.pose.position.y =Y_IN_MINING_AREA - 0.4#TODO: make this better, or improve the state transitions, this is so that the mining state will be left
+        startPose.pose.orientation.x = self.pose.orientation.x
+        startPose.pose.orientation.y = self.pose.orientation.y
+        startPose.pose.orientation.z = self.pose.orientation.z
+        startPose.pose.orientation.w = self.pose.orientation.w
         start_x = self.pose.position.x
         start_y = self.pose.position.y
 
@@ -124,9 +131,16 @@ class high_level_state_controller(object):
             end_x = abs(end_x)/end_x * 1.2  #so it won't run into the wall
 
         path = []
+
+        #this needs to include the orientation if we use the nav_stack, and since the orientation is a quaternion it will need conversion
         endPose = PoseStamped()
+        endPose.header.frame_id = "map"
         endPose.pose.position.x = end_x
         endPose.pose.position.y = end_y
+        endPose.pose.orientation.x = 0
+        endPose.pose.orientation.y = 0
+        endPose.pose.orientation.z = 0
+        endPose.pose.orientation.w = 1
 
         path.append(startPose)
         path.append(endPose)
@@ -219,8 +233,13 @@ class high_level_state_controller(object):
             elif(self.autostate == "DOCKING"):
                 self.arm_predump_state()
                 dockPose = PoseStamped()
+                dockPose.header.frame_id = "map"
                 dockPose.pose.position.x = X_POS_DUMP
                 dockPose.pose.position.y = Y_POS_DUMP
+                dockPose.pose.orientation.x = 0
+                dockPose.pose.orientation.y = 0
+                dockPose.pose.orientation.z = -0.7071067811865476
+                dockPose.pose.orientation.w = 0.7071067811865476
                 self.goal_pub.publish(dockPose)
 
             elif(self.autostate == "DUMPING"):

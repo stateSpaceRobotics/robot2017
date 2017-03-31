@@ -23,9 +23,18 @@ class PathPublisher(object):
         point1 = PoseStamped()
         point1.pose.position.x = POINT_1_X
         point1.pose.position.y = POINT_1_Y
+        point1.pose.orientation.x = 0
+        point1.pose.orientation.y = 0
+        point1.pose.orientation.z = -0.7071067811865476
+        point1.pose.orientation.w = -0.7071067811865476
+
         point2 = PoseStamped()
         point2.pose.position.x = POINT_2_X
         point2.pose.position.y = POINT_2_Y
+        point2.pose.orientation.x = 0
+        point2.pose.orientation.y = 0
+        point2.pose.orientation.z = 0.7071067811865476
+        point2.pose.orientation.w = -0.7071067811865476
 
         self.path.poses = []
         self.path.poses.append(point1)
