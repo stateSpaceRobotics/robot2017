@@ -6,11 +6,10 @@ from cr17.msg import wheelData, scoopControl
 import os
 import sys
 
-try:
-    import usb.core
-    import usb.util
-except ImportError:
-	print "Error should be expected IF using Travis-CLI"
+
+import usb.core
+import usb.util
+
 
 from time import sleep
 import random
