@@ -50,7 +50,7 @@
   <run_depend>std_msgs</run_depend>
   <run_depend>joy</run_depend>
   <run_depend>libusb-1.0</run_depend>
-  <run_depend>pyusb</run_depend>
+  
 
   <test_depend>rosunit</test_depend>
 
