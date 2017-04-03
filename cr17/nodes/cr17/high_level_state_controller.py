@@ -5,8 +5,8 @@ import rospy, math
 from geometry_msgs.msg import PoseStamped, Twist, Pose
 from std_msgs.msg import Float64, Bool, String
 from nav_msgs.msg import Path
-from cr17.msg import scoopControl
-from cr17.srv import autonomousActive, autonomousActiveResponse
+from cr17.msg import scoopControl, dockerStatus
+from cr17.srv import autonomousActive, autonomousActiveResponse, dockerState
 
 
 ARM_STATE_TOPIC = rospy.get_param("topics/scoop_state_cmds", "scoop_commands")
@@ -14,6 +14,7 @@ POSE_TOPIC = rospy.get_param("topics/localization_pose") #rospy.get_param("topic
 PATH_TOPIC = rospy.get_param("topics/path", "/obstacle_path")
 GOAL_TOPIC = rospy.get_param("topics/navigation_goals", "nav_goal") #TODO: might need to be renamed
 STATE_TOPIC = rospy.get_param("topics/robot_state", "state")
+DOCKER_TOPIC = rospy.get_param("topics/docker_status")
 MINING_DISTANCE = rospy.get_param("distance_to_mine", 1.5)
 
 Y_IN_DUMP_RANGE = 0.4
@@ -52,7 +53,7 @@ class high_level_state_controller(object):
         self.frontMiningGoal = PoseStamped()
         self.frontMiningGoal.header.frame_id = "map"
         self.frontMiningGoal.pose.position.x = 0
-        self.frontMiningGoal.pose.position.y = Y_IN_MINING_AREA+0.4
+        self.frontMiningGoal.pose.position.y = Y_IN_MINING_AREA + 0.4
         self.frontMiningGoal.pose.orientation.x = 0
         self.frontMiningGoal.pose.orientation.y = 0
         self.frontMiningGoal.pose.orientation.z = -0.7071067811865476
@@ -61,11 +62,13 @@ class high_level_state_controller(object):
         self.dumpSetupGoal = PoseStamped()
         self.dumpSetupGoal.header.frame_id = "map"
         self.dumpSetupGoal.pose.position.x = 0
-        self.dumpSetupGoal.pose.position.y = 1.1
+        self.dumpSetupGoal.pose.position.y = Y_IN_DOCKING_AREA - 0.1
         self.dumpSetupGoal.pose.orientation.x = 0
         self.dumpSetupGoal.pose.orientation.y = 0
         self.dumpSetupGoal.pose.orientation.z = -0.7071067811865476
         self.dumpSetupGoal.pose.orientation.w = 0.7071067811865476
+
+        self.dockerStatus = dockerStatus()
 
         # ROS Publishers
         self.arm_pub = rospy.Publisher(ARM_STATE_TOPIC, scoopControl, queue_size=10)
@@ -73,6 +76,7 @@ class high_level_state_controller(object):
 
         #ROS Subscribers
         rospy.Subscriber(POSE_TOPIC, PoseStamped, self.pose_sub)
+        rospy.Subscriber(DOCKER_TOPIC, dockerStatus, self.docker_sub)
 
         # ROS Services
         self.auto_srv = rospy.Service('autonomousHLSC', autonomousActive, self.set_autonomy)
@@ -83,6 +87,9 @@ class high_level_state_controller(object):
 
     def pose_sub(self, data):
         self.pose = data.pose
+
+    def docker_sub(self, data):
+        self.dockerStatus = data
 
     def arm_drive_state(self):
         newMsg = scoopControl()
@@ -211,17 +218,19 @@ class high_level_state_controller(object):
 
             elif(self.autostate == "DOCKING"):
                 self.arm_predump_state()
-                dockPose = PoseStamped()
-                dockPose.header.frame_id = "map"
-                dockPose.pose.position.x = X_POS_DUMP
-                dockPose.pose.position.y = Y_POS_DUMP
-                dockPose.pose.orientation.x = 0
-                dockPose.pose.orientation.y = 0
-                dockPose.pose.orientation.z = -0.7071067811865476
-                dockPose.pose.orientation.w = 0.7071067811865476
-                self.goal_pub.publish(dockPose)
+                try:
+                    dockerService = rospy.ServiceProxy("/dockerState", dockerState)
+                    dockerService(True)
+                except rospy.ServiceException, e:
+                    rospy.logerr("/dockerState service call failed: %s",e)
 
             elif(self.autostate == "DUMPING"):
+                if self.dockerStatus.dockerActive:
+                    try:
+                        dockerService = rospy.ServiceProxy("/dockerState", dockerState)
+                        dockerService(False)
+                    except rospy.ServiceException, e:
+                        rospy.logerr("/dockerState service call failed: %s",e)
                 dumping_complete = False
                 if(self.dumpTimer == None):
                     self.dumpTimer = rospy.Time.now() + rospy.Duration(secs = TIME_DUMP_SEC)
@@ -252,7 +261,7 @@ class high_level_state_controller(object):
                 if(self.pose.position.y <= Y_IN_DOCKING_AREA):
                     self.autostate = "DOCKING"
             elif(self.autostate == "DOCKING"):
-                if(self.pose.position.y < Y_IN_DUMP_RANGE):
+                if (self.pose.position.y < Y_IN_DUMP_RANGE) or self.dockerStatus.dockingComplete:
                     self.autostate = "DUMPING"
             elif(self.autostate == "DUMPING"):
                 if(dumping_complete or (self.pose.position.y >= Y_IN_DUMP_RANGE)):

@@ -1,0 +1,3 @@
+bool newDockerState
+---
+bool setDockerState
