@@ -16,7 +16,7 @@ GOAL_TOPIC = rospy.get_param("topics/navigation_goals", "nav_goal") #TODO: might
 STATE_TOPIC = rospy.get_param("topics/robot_state", "state")
 MINING_DISTANCE = rospy.get_param("distance_to_mine", 1.5)
 
-Y_IN_DUMP_RANGE = 0.6
+Y_IN_DUMP_RANGE = 0.4
 Y_IN_MINING_AREA = 4.5 #10 cm past edge of mining area
 Y_IN_DOCKING_AREA = 1.5
 
@@ -40,17 +40,32 @@ class high_level_state_controller(object):
         self.state_pub = rospy.Publisher(STATE_TOPIC, String, queue_size=10)
 
         self.pose = Pose()
-        self.pathPoses = []     #TODO: maybe remove, send entire current path to navigator
-        self.curPathIndex = 0   #TODO: maybe remove, send entire current path to navigator
         self.autostate = "INIT"
 
         self.miningAngleIndex = 0
-        self.miningPathIndex = 0
         self.miningReady = False
         self.miningDone = False
-        self.minePath = None
+        self.miningTarget = None
         self.dumpTimer = None
         self.autonomyEnabled = True
+
+        self.frontMiningGoal = PoseStamped()
+        self.frontMiningGoal.header.frame_id = "map"
+        self.frontMiningGoal.pose.position.x = 0
+        self.frontMiningGoal.pose.position.y = Y_IN_MINING_AREA+0.4
+        self.frontMiningGoal.pose.orientation.x = 0
+        self.frontMiningGoal.pose.orientation.y = 0
+        self.frontMiningGoal.pose.orientation.z = -0.7071067811865476
+        self.frontMiningGoal.pose.orientation.w = -0.7071067811865476
+
+        self.dumpSetupGoal = PoseStamped()
+        self.dumpSetupGoal.header.frame_id = "map"
+        self.dumpSetupGoal.pose.position.x = 0
+        self.dumpSetupGoal.pose.position.y = 1.1
+        self.dumpSetupGoal.pose.orientation.x = 0
+        self.dumpSetupGoal.pose.orientation.y = 0
+        self.dumpSetupGoal.pose.orientation.z = -0.7071067811865476
+        self.dumpSetupGoal.pose.orientation.w = 0.7071067811865476
 
         # ROS Publishers
         self.arm_pub = rospy.Publisher(ARM_STATE_TOPIC, scoopControl, queue_size=10)
@@ -58,7 +73,6 @@ class high_level_state_controller(object):
 
         #ROS Subscribers
         rospy.Subscriber(POSE_TOPIC, PoseStamped, self.pose_sub)
-        rospy.Subscriber(PATH_TOPIC, Path, self.path_sub)
 
         # ROS Services
         self.auto_srv = rospy.Service('autonomousHLSC', autonomousActive, self.set_autonomy)
@@ -69,11 +83,6 @@ class high_level_state_controller(object):
 
     def pose_sub(self, data):
         self.pose = data.pose
-
-    def path_sub(self, data):
-        self.pathPoses = data.poses
-        for each in self.pathPoses:
-            each.header.frame_id = "map"
 
     def arm_drive_state(self):
         newMsg = scoopControl()
@@ -110,15 +119,7 @@ class high_level_state_controller(object):
         newMsg.desiredState = scoopControl.state_postDump
         self.arm_pub.publish(newMsg)
 
-    def calculate_mining_path(self, angle):
-        startPose = PoseStamped()
-        startPose.header.frame_id = "map"
-        startPose.pose.position.x = self.pose.position.x
-        startPose.pose.position.y =Y_IN_MINING_AREA - 0.4#TODO: make this better, or improve the state transitions, this is so that the mining state will be left
-        startPose.pose.orientation.x = self.pose.orientation.x
-        startPose.pose.orientation.y = self.pose.orientation.y
-        startPose.pose.orientation.z = self.pose.orientation.z
-        startPose.pose.orientation.w = self.pose.orientation.w
+    def calculate_mining_target(self, angle):
         start_x = self.pose.position.x
         start_y = self.pose.position.y
 
@@ -130,8 +131,6 @@ class high_level_state_controller(object):
         if abs(end_x) > 1.2:
             end_x = abs(end_x)/end_x * 1.2  #so it won't run into the wall
 
-        path = []
-
         #this needs to include the orientation if we use the nav_stack, and since the orientation is a quaternion it will need conversion
         endPose = PoseStamped()
         endPose.header.frame_id = "map"
@@ -139,12 +138,10 @@ class high_level_state_controller(object):
         endPose.pose.position.y = end_y
         endPose.pose.orientation.x = 0
         endPose.pose.orientation.y = 0
-        endPose.pose.orientation.z = 0
-        endPose.pose.orientation.w = 1
+        endPose.pose.orientation.z = -0.7071067811865476
+        endPose.pose.orientation.w = -0.7071067811865476
 
-        path.append(startPose)
-        path.append(endPose)
-        return path
+        return endPose
 
     def close_to(self, poseChecked):
         try:
@@ -166,17 +163,12 @@ class high_level_state_controller(object):
             if(self.autostate == "INIT"):
                 pass
                 ######################################################################################################
-                #TODO: add code to orient the robot properly
+                #TODO: add code to orient the robot properly, may just set the arm, not sure yet
                 ######################################################################################################
 
 
             elif(self.autostate == "F_OBSTACLE_FIELD"):
-                if(len(self.pathPoses) != 0):
-                    if(self.close_to(self.pathPoses[self.curPathIndex])):
-                        self.curPathIndex += 1
-                        if(self.curPathIndex >= len(self.pathPoses)):
-                            self.curPathIndex = len(self.pathPoses) - 1
-                    self.goal_pub.publish(self.pathPoses[self.curPathIndex])
+                self.goal_pub.publish(self.frontMiningGoal)
                 self.arm_drive_state()
 
             elif(self.autostate == "MINING_BEHAVIOR"):
@@ -190,31 +182,22 @@ class high_level_state_controller(object):
                 elif(self.miningReady and not self.miningDone ):
                     self.arm_dig_state()
 
-                    if(self.minePath == None):
-                        self.minePath = self.calculate_mining_path(ANGLES_TO_MINE[self.miningAngleIndex])
+                    if(self.miningTarget == None):
+                        self.miningTarget = self.calculate_mining_target(ANGLES_TO_MINE[self.miningAngleIndex])
                         self.miningAngleIndex += 1
                         if(self.miningAngleIndex >= len(ANGLES_TO_MINE)):
                             self.miningAngleIndex = 0
-                        self.miningPathIndex = min(1, len(self.minePath) - 1) #skip the first point when going forward
 
-                    if(self.close_to(self.minePath[self.miningPathIndex])):
-                        self.miningPathIndex += 1
-                        if (self.miningPathIndex >= len(self.minePath)):
-                            self.miningPathIndex = len(self.minePath) - 1
-                    self.goal_pub.publish(self.minePath[self.miningPathIndex])
+                    self.goal_pub.publish(self.miningTarget)
 
-                    if(self.close_to(self.minePath[len(self.minePath) - 1])):
+                    if(self.close_to(self.miningTarget)):
                         self.miningDone = True
                         self.arm_postdig_state()
 
                 #once the end of the path has been reached, close the hand and iterate back across path
                 elif self.miningDone:
                     self.arm_postdig_state()
-                    if (self.close_to(self.minePath[self.miningPathIndex])):
-                        self.miningPathIndex -= 1
-                        if (self.miningPathIndex < 0):
-                            self.miningPathIndex = 0
-                    self.goal_pub.publish(self.minePath[self.miningPathIndex])
+                    self.goal_pub.publish(self.dumpSetupGoal)
 
                 #once the beginning has been reached again
 
@@ -223,12 +206,8 @@ class high_level_state_controller(object):
             ######################################################################################################
 
             elif(self.autostate == "B_OBSTACLE_FIELD"):
+                self.goal_pub.publish(self.dumpSetupGoal)
                 self.arm_drive_state()
-                if(self.close_to(self.pathPoses[self.curPathIndex])):
-                    self.curPathIndex -= 1
-                    if(self.curPathIndex < 0 ):
-                        self.curPathIndex = 0
-                self.goal_pub.publish(self.pathPoses[self.curPathIndex])
 
             elif(self.autostate == "DOCKING"):
                 self.arm_predump_state()
@@ -245,7 +224,7 @@ class high_level_state_controller(object):
             elif(self.autostate == "DUMPING"):
                 dumping_complete = False
                 if(self.dumpTimer == None):
-                    self.dumpTimer = rospy.Time.now() + rospy.Duration(TIME_DUMP_SEC)
+                    self.dumpTimer = rospy.Time.now() + rospy.Duration(secs = TIME_DUMP_SEC)
                 elif(self.dumpTimer >= rospy.Time.now() ):
                     dumping_complete = True
                     self.arm_postdump_state()
@@ -264,16 +243,14 @@ class high_level_state_controller(object):
             elif(self.autostate == "F_OBSTACLE_FIELD"):
                 if(self.pose.position.y >= Y_IN_MINING_AREA):
                     self.autostate = "MINING_BEHAVIOR"
-                    self.curPathIndex = len(self.pathPoses) - 1
             elif(self.autostate == "MINING_BEHAVIOR"):
                 if( not self.autonomyEnabled or (self.pose.position.y < Y_IN_MINING_AREA - .3) ):
                     self.autostate = "B_OBSTACLE_FIELD"
-                    self.minePath = None
+                    self.miningTarget = None
                     self.miningDone = False
             elif(self.autostate == "B_OBSTACLE_FIELD"):
                 if(self.pose.position.y <= Y_IN_DOCKING_AREA):
                     self.autostate = "DOCKING"
-                    self.curPathIndex = 0
             elif(self.autostate == "DOCKING"):
                 if(self.pose.position.y < Y_IN_DUMP_RANGE):
                     self.autostate = "DUMPING"
