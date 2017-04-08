@@ -3,36 +3,36 @@ import rospy
 from cr17.msg import scoopControl
 from cr17.srv import autonomousActive, autonomousActiveResponse
 
-# Topics
-ARM_STATE_TOPIC = rospy.get_param('topics/scoop_state_cmds')
-ARM_GOAL_TOPIC = rospy.get_param('topics/scoop_cmds')
-
-# Scooper/Arm Angles
-DRIVING_ARM_ANGLE = rospy.get_param('scoop_config/driving_arm_angle')
-DRIVING_SCOOP_ANGLE = rospy.get_param('scoop_config/driving_scoop_angle')
-
-PRE_DIG_ARM_ANGLE = rospy.get_param('scoop_config/pre_dig_arm_angle')
-PRE_DIG_SCOOP_ANGLE = rospy.get_param('scoop_config/pre_dig_scoop_angle')
-
-DIGGING_ARM_ANGLE = rospy.get_param('scoop_config/digging_arm_angle')
-DIGGING_SCOOP_ANGLE = rospy.get_param('scoop_config/digging_scoop_angle')
-
-POST_DIG_ARM_ANGLE = rospy.get_param('scoop_config/post_dig_arm_angle')
-POST_DIG_SCOOP_ANGLE = rospy.get_param('scoop_config/post_dig_scoop_angle')
-
-PRE_DUMP_ARM_ANGLE = rospy.get_param('scoop_config/pre_dump_arm_angle')
-PRE_DUMP_SCOOP_ANGLE = rospy.get_param('scoop_config/pre_dump_scoop_angle')
-
-DUMPING_ARM_ANGLE = rospy.get_param('scoop_config/dumping_arm_angle')
-DUMPING_SCOOP_ANGLE = rospy.get_param('scoop_config/dumping_scoop_angle')
-
-POST_DUMP_ARM_ANGLE = rospy.get_param('scoop_config/post_dump_arm_angle')
-POST_DUMP_SCOOP_ANGLE = rospy.get_param('scoop_config/post_dump_scoop_angle')
-
 
 class ScoopController(object):
     def __init__(self):
         rospy.init_node('scoop_controller')
+
+        # Topics
+        self.arm_state_topic = rospy.get_param('topics/scoop_state_cmds')
+        self.arm_goal_topic = rospy.get_param('topics/scoop_cmds')
+
+        # Scooper/Arm Angles
+        self.driving_arm_angle = rospy.get_param('scoop_config/driving_arm_angle')
+        self.driving_scoop_angle = rospy.get_param('scoop_config/driving_scoop_angle')
+
+        self.pre_dig_arm_angle = rospy.get_param('scoop_config/pre_dig_arm_angle')
+        self.pre_dig_scoop_angle = rospy.get_param('scoop_config/pre_dig_scoop_angle')
+
+        self.digging_arm_angle = rospy.get_param('scoop_config/digging_arm_angle')
+        self.digging_scoop_angle = rospy.get_param('scoop_config/digging_scoop_angle')
+
+        self.post_dig_arm_angle = rospy.get_param('scoop_config/post_dig_arm_angle')
+        self.post_dig_scoop_angle = rospy.get_param('scoop_config/post_dig_scoop_angle')
+
+        self.pre_dump_arm_angle = rospy.get_param('scoop_config/pre_dump_arm_angle')
+        self.pre_dump_scoop_angle = rospy.get_param('scoop_config/pre_dump_scoop_angle')
+
+        self.dumping_arm_angle = rospy.get_param('scoop_config/dumping_arm_angle')
+        self.dumping_scoop_angle = rospy.get_param('scoop_config/dumping_scoop_angle')
+
+        self.post_dump_arm_angle = rospy.get_param('scoop_config/post_dump_arm_angle')
+        self.post_dump_scoop_angle = rospy.get_param('scoop_config/post_dump_scoop_angle')
 
         # What should be the starting values for these
         self.autonomous = True
@@ -41,10 +41,10 @@ class ScoopController(object):
         self.create_defined_msgs()
 
         # ROS Subscribers
-        self.arm_sub = rospy.Subscriber(ARM_STATE_TOPIC, scoopControl, self.update_scoop_msg, queue_size=10)
+        self.arm_sub = rospy.Subscriber(self.arm_state_topic, scoopControl, self.update_scoop_msg, queue_size=10)
 
         # ROS Publishers
-        self.scoop_pub = rospy.Publisher(ARM_GOAL_TOPIC, scoopControl, queue_size=10)
+        self.scoop_pub = rospy.Publisher(self.arm_goal_topic, scoopControl, queue_size=10)
 
         # ROS Services
         self.auto_srv = rospy.Service('autonomousScoop', autonomousActive, self.set_autonomy)
@@ -74,26 +74,26 @@ class ScoopController(object):
         for state_msg in range(0, 8):
             new_msg = scoopControl()
             if state_msg == new_msg.state_drivingPosition:
-                new_msg.armAngle = DRIVING_ARM_ANGLE
-                new_msg.scoopAngle = DRIVING_SCOOP_ANGLE
+                new_msg.armAngle = self.driving_arm_angle
+                new_msg.scoopAngle = self.driving_scoop_angle
             elif state_msg == new_msg.state_preDigging:
-                new_msg.armAngle = PRE_DIG_ARM_ANGLE
-                new_msg.scoopAngle = PRE_DIG_SCOOP_ANGLE
+                new_msg.armAngle = self.pre_dig_arm_angle
+                new_msg.scoopAngle = self.pre_dig_scoop_angle
             elif state_msg == new_msg.state_digging:
-                new_msg.armAngle = DIGGING_ARM_ANGLE
-                new_msg.scoopAngle = DIGGING_SCOOP_ANGLE
+                new_msg.armAngle = self.digging_arm_angle
+                new_msg.scoopAngle = self.digging_scoop_angle
             elif state_msg == new_msg.state_postDigging:
-                new_msg.armAngle = POST_DIG_ARM_ANGLE
-                new_msg.scoopAngle = POST_DIG_SCOOP_ANGLE
+                new_msg.armAngle = self.post_dig_arm_angle
+                new_msg.scoopAngle = self.post_dig_scoop_angle
             elif state_msg == new_msg.state_preDump:
-                new_msg.armAngle = PRE_DUMP_ARM_ANGLE
-                new_msg.scoopAngle = PRE_DUMP_SCOOP_ANGLE
+                new_msg.armAngle = self.pre_dump_arm_angle
+                new_msg.scoopAngle = self.pre_dump_scoop_angle
             elif state_msg == new_msg.state_dump:
-                new_msg.armAngle = DUMPING_ARM_ANGLE
-                new_msg.scoopAngle = DUMPING_SCOOP_ANGLE
+                new_msg.armAngle = self.dumping_arm_angle
+                new_msg.scoopAngle = self.dumping_scoop_angle
             elif state_msg == new_msg.state_postDump:
-                new_msg.armAngle = POST_DUMP_ARM_ANGLE
-                new_msg.scoopAngle = POST_DUMP_SCOOP_ANGLE
+                new_msg.armAngle = self.post_dump_arm_angle
+                new_msg.scoopAngle = self.post_dump_scoop_angle
             self.defined_msgs.append(new_msg)
 
 
