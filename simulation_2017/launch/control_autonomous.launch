@@ -29,6 +29,10 @@
         <remap to="/sick_scan" from="/scan_topic" />
         <remap to="/sick_lidar_beacon_points" from="/lidar_beacon_points" />
     </node>
+    
+    <node name="beacon_localization" pkg="cr17" type="beacon_localization.deprecated.py">
+        <remap from="/beacon_localization_pose" to="/robot/standard_pose"/>
+    </node>
 
     <node name="sim_scoop_controller" pkg="simulation_2017" type="sim_scoop_controller.py"/>
 
@@ -36,8 +40,9 @@
         <remap from="/beacon_localization_pose" to="/robot/standard_pose"/>
     </node>
 
+
     <node name="path_pub" pkg="cr17" type="path_pub.py"/>
 
-    <node name="magic_odomFromGazebo" pkg="simulation_2017" type="magic_odomFromGazebo.py"/>
-
+<!--     <node name="magic_odomFromGazebo" pkg="simulation_2017" type="magic_odomFromGazebo.py"/>
+ -->
 </launch>
