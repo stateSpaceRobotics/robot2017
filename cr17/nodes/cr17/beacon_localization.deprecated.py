@@ -7,31 +7,21 @@ from tf.transformations import quaternion_from_euler
 from std_msgs.msg import Bool
 from beacon import Beacon
 from laser_object import LaserObject
+from cr17.msg import localizationPoint, localizationPoints
+
 
 '''
 Proof of concept/sandbox module for trying out different ways to process lidar data.
 '''
 
 ####### Default Global Values (stars lab motor tube testing) #######
-#SCAN_TOPIC = "scan"
-#POST_DIST = 1.2     # Distance posts are apart from one another on beacon
-#POST_DIST_ERR = 0.2    #0.025  # Error allowed in post distance
 MAX_RANGE = 15#1.25     # Max Scan range to consider
 LARGE_NUMBER = 9999999  # Arbitrarily large number
-
-#POST_WIDTH = 0.1          # Expected width of post
-#POST_WIDTH_ERR = 0.1  # Error allowed in post width
-
-#LEFT_POST_LOC = (0.65, 0)     # Global coordinate of left post
-#RIGHT_POST_LOC = (-0.65, 0)    # Global coordinate of right post
 #####################################
 
 
 class BeaconLocalizer(object):
-
     def __init__(self):
-        #global SCAN_TOPIC, POST_DIST, LEFT_POST_LOC, RIGHT_POST_LOC
-        #global POST_WIDTH, POST_WIDTH_ERR, POST_DIST_ERR
         '''
         Lidar Processor constructor
         '''
@@ -59,52 +49,36 @@ class BeaconLocalizer(object):
         ###################################
         ROBOPOSE_TOPIC = rospy.get_param("topics/localization_pose")
 
-        rospy.Subscriber(self.SCAN_TOPIC, LaserScan, self.scan_callback)
+        self.latest_hokuyo_scan = []
+        self.latest_sick_scan = []
+
+        rospy.Subscriber("/hokuyo_lidar_beacon_points", localizationPoints, self.hokuyo_callback)
+        rospy.Subscriber("/sick_lidar_beacon_points", localizationPoints, self.sick_callback)
 
         #self.vis_scan_pub = rospy.Publisher("vis_scan", LaserScan, queue_size = 10)
         self.pose_pub = rospy.Publisher(ROBOPOSE_TOPIC, PoseStamped, queue_size = 10)
         self.beacon_lost_pub = rospy.Publisher(self.BEACON_LOST_TOPIC, Bool, queue_size = 10)
-
-        self.current_pose = PoseStamped()
-        self.current_scan = LaserScan() # current scan message
-        self.received_scan = False      # True if we've received a new scan, false if not
 
         atexit.register(self._exit_handler)
         signal.signal(signal.SIGINT, self._signal_handler)
 
         self.robot_location = (0, 0)    # Stores current robot location
 
-    def scan_callback(self, data):
-        '''
-        This function is called everytime a message is transmitted over /scan topic
-        '''
-        # Update current scan
-        self.current_scan = data
-        # Set received scan flag to True
-        self.received_scan = True
+    def hokuyo_callback(self, data):
+        self.latest_hokuyo_scan = data.points
+
+    def sick_callback(self, data):
+        self.latest_sick_scan = data.points
 
     def run(self):
         '''
         Main work loop.
         '''
         rate = rospy.Rate(10)
-        this_scan = []
         while not rospy.is_shutdown():
-            if self.received_scan:
-                self.received_scan = False 
-                this_scan = self.current_scan
-                stime = time.time()
-                self.process_scan(this_scan)
-                etime = time.time()
-                # print("Calc time: " + str(etime - stime))
+            self.process_beacon_points()
 
             rate.sleep()
-
-    def correct_dist(self, dist):
-        '''
-        Given a distance, clip distance to MAX_RANGE if longer than MAX_RANGE
-        '''
-        return dist if dist <= MAX_RANGE else MAX_RANGE
 
     def obj_dist(self, r_obj, l_obj):
         '''
@@ -117,69 +91,19 @@ class BeaconLocalizer(object):
         dist = math.sqrt(math.pow(r, 2) + math.pow(l, 2) - (2 * r * l * math.cos(theta)))
         return dist
 
-    def process_scan(self, scan_msg):
-        '''
-        given a scan msg, process 
-        '''
-        current_angle = scan_msg.angle_min   # current angle will always have current angle (in lidar space)
-        good_orientation = False 
-        good_position = False
+    def process_beacon_points(self):
+        scan_objs = self.latest_hokuyo_scan + self.latest_sick_scan
 
-        ##################################
-        # Visualization message (used to visualize software imposed laser range limit)
-        # vis_scan = LaserScan()
-        # vis_scan = scan_msg
-        # vis_scan.range_max = MAX_RANGE
-        # self.vis_scan_pub.publish(vis_scan)
-        ##################################
-
-
-        ####################### 
-        # Pick out objects from scan
-        #######################
-        last_point = 0          # Previous point
-        edge_thresh = 0.2       # thresh for edge detection
-        scan_obj = LaserObject()
-        scan_objs = []
-        # print("======================")
-        # loop through each laser scan
-        for i in xrange(0, len(scan_msg.ranges)):
-            # get corrected previous distance
-            last_dist = self.correct_dist(scan_msg.ranges[last_point])
-            # get corrected current distance
-            cur_dist = self.correct_dist(scan_msg.ranges[i])
-            # calculate change
-            change = cur_dist - last_dist
-            if abs(change) > edge_thresh and change < 0:
-                # found a right edge
-                scan_obj = LaserObject()
-                scan_obj.right_edge = i
-            elif abs(change) > edge_thresh and change > 0:
-                # found a left edge
-                if scan_obj.right_edge != None:
-                    # make sure we've found a right edge already before this left edge
-                    scan_obj.left_edge = last_point
-                    scan_obj.process(scan_msg)
-                    # Make sure object is of expected length
-                    # print("Potential obj Length: " + str(scan_obj.length))
-                    if (scan_obj.length >= self.POST_WIDTH - self.POST_WIDTH_ERR) and (scan_obj.length <= self.POST_WIDTH + self.POST_WIDTH_ERR):
-                        scan_objs.append(scan_obj)
-                    scan_obj = LaserObject()
-                else:
-                    scan_obj = LaserObject()
-
-            # update current angle
-            current_angle += scan_msg.angle_increment
-            # update last point
-            last_point = i
         # print("num objects: " + str(len(scan_objs)))
         # for obj in scan_objs:
-            # print("~ OBJ")
-            # print("    ~ Angle: " + str(math.degrees(obj.angle)))
-            # print("    ~ Length: " + str(obj.length))
+        #     print("~ OBJ")
+        #     print("    ~ Angle: " + str(math.degrees(obj.angle)))
+        #     print("    ~ Length: " + str(obj.length))
         ######################
         # Find the beacon (two posts distanced a known distance apart)
         ######################
+        good_orientation = False
+        good_position = False
         beacon = None
         min_beacon_err = LARGE_NUMBER
         for ri in xrange(0, len(scan_objs)):
@@ -261,8 +185,7 @@ class BeaconLocalizer(object):
             pose.pose.orientation.y = quat[1]
             pose.pose.orientation.z = quat[2]
             pose.pose.orientation.w = quat[3]
-            # update current pose
-            self.current_pose = pose 
+
 
 
 #             pose_mag = beacon.left_post.distance #math.sqrt(pose.pose.position.y**2 + pose.pose.position.x**2)
