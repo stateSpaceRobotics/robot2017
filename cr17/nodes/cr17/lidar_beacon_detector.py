@@ -14,7 +14,7 @@ Proof of concept/sandbox module for trying out different ways to process lidar d
 '''
 
 
-class BeaconLocalizer(object):
+class LidarBeaconDetector(object):
 
     def __init__(self):
         '''
@@ -47,8 +47,6 @@ class BeaconLocalizer(object):
         rospy.Subscriber("/scan_topic", LaserScan, self.scan_callback)
 
         self.vis_scan_pub = rospy.Publisher("vis_scan", LaserScan, queue_size = 10)
-        #self.pose_pub = rospy.Publisher(ROBOPOSE_TOPIC, PoseStamped, queue_size = 10)
-        #self.beacon_lost_pub = rospy.Publisher(BEACON_LOST_TOPIC, Bool, queue_size = 10)
         self.beacon_point_pub = rospy.Publisher(self.BEACON_POINT_TOPIC, localizationPoints, queue_size = 10)
 
         self.current_pose = PoseStamped()
@@ -108,8 +106,6 @@ class BeaconLocalizer(object):
         given a scan msg, process 
         '''
         current_angle = scan_msg.angle_min   # current angle will always have current angle (in lidar space)
-        good_orientation = False 
-        good_position = False
 
         ##################################
         # Visualization message (used to visualize software imposed laser range limit)
@@ -191,6 +187,6 @@ def meters_to_inches(val):
 
 
 if __name__ == "__main__":
-    processor = BeaconLocalizer()
+    processor = LidarBeaconDetector()
     processor.run()
 
