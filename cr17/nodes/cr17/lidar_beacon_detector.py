@@ -70,16 +70,15 @@ class BeaconLocalizer(object):
         ###################################
         # Load beacon localization params
         ###################################
-        self.SCAN_TOPIC = rospy.get_param("beacon_localization/scan_topic")
         self.POST_DIST = rospy.get_param("beacon_localization/post_distance")
         self.PORT_DIST_ERR = rospy.get_param("beacon_localization/post_distance_err")
         self.POST_WIDTH = rospy.get_param("beacon_localization/post_width")
         self.POST_WIDTH_ERR = rospy.get_param("beacon_localization/post_width_err")
-        self.MAX_RANGE = rospy.get_param("max_range")
-        loc = rospy.get_param("beacon_localization/left_post_loc")
-        self.LEFT_POST_LOC = (float(loc[0]), float(loc[1]))
-        loc = rospy.get_param("beacon_localization/right_post_loc")
-        self.RIGHT_POST_LOC = (float(loc[0]), float(loc[1]))
+        self.MAX_RANGE = rospy.get_param("beacon_localization/max_range")
+        leftloc = rospy.get_param("beacon_localization/left_post_loc")
+        self.LEFT_POST_LOC = (float(leftloc[0]), float(leftloc[1]))
+        rightloc = rospy.get_param("beacon_localization/right_post_loc")
+        self.RIGHT_POST_LOC = (float(rightloc[0]), float(rightloc[1]))
         self.BEACON_LOST_TOPIC = rospy.get_param("topics/beacon_lost")
         self.BEACON_POINT_TOPIC = rospy.get_param("topics/lidar_beacon_points", "lidar_beacon_points")
         print("POST DIST: " + str(self.POST_DIST))
@@ -88,9 +87,7 @@ class BeaconLocalizer(object):
         ###################################
         # Load topic names
         ###################################
-        ROBOPOSE_TOPIC = rospy.get_param("topics/localization_pose")
-
-        rospy.Subscriber(self.SCAN_TOPIC, LaserScan, self.scan_callback)
+        rospy.Subscriber("/scan_topic", LaserScan, self.scan_callback)
 
         self.vis_scan_pub = rospy.Publisher("vis_scan", LaserScan, queue_size = 10)
         #self.pose_pub = rospy.Publisher(ROBOPOSE_TOPIC, PoseStamped, queue_size = 10)
