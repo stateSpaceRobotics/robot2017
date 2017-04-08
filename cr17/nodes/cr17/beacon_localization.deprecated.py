@@ -42,7 +42,6 @@ class BeaconLocalizer(object):
         ###################################
         # Load beacon localization params
         ###################################
-        self.SCAN_TOPIC = rospy.get_param("beacon_localization/scan_topic")
         self.POST_DIST = rospy.get_param("beacon_localization/post_distance")
         self.POST_DIST_ERR = rospy.get_param("beacon_localization/post_distance_err")
         self.POST_WIDTH = rospy.get_param("beacon_localization/post_width")

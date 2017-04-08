@@ -27,18 +27,10 @@ class LidarBeaconDetector(object):
         ###################################
         # Load beacon localization params
         ###################################
-        self.POST_DIST = rospy.get_param("beacon_localization/post_distance")
-        self.PORT_DIST_ERR = rospy.get_param("beacon_localization/post_distance_err")
         self.POST_WIDTH = rospy.get_param("beacon_localization/post_width")
         self.POST_WIDTH_ERR = rospy.get_param("beacon_localization/post_width_err")
         self.MAX_RANGE = rospy.get_param("beacon_localization/max_range")
-        leftloc = rospy.get_param("beacon_localization/left_post_loc")
-        self.LEFT_POST_LOC = (float(leftloc[0]), float(leftloc[1]))
-        rightloc = rospy.get_param("beacon_localization/right_post_loc")
-        self.RIGHT_POST_LOC = (float(rightloc[0]), float(rightloc[1]))
-        self.BEACON_LOST_TOPIC = rospy.get_param("topics/beacon_lost")
         self.BEACON_POINT_TOPIC = rospy.get_param("topics/lidar_beacon_points", "lidar_beacon_points")
-        print("POST DIST: " + str(self.POST_DIST))
         ###################################
 
         ###################################
