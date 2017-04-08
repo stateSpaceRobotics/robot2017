@@ -22,10 +22,12 @@
     </node>
 
     <node name="hokuyo_lidar_beacon_detector" pkg="cr17" type="lidar_beacon_detector.py">
-            <remap to="/hokuyo_scan" from="/scan_topic" />
+        <remap to="/hokuyo_scan" from="/scan_topic" />
+        <remap to="/hokuyo_lidar_beacon_points" from="/lidar_beacon_points" />
     </node>
     <node name="sick_lidar_beacon_detector" pkg="cr17" type="lidar_beacon_detector.py">
         <remap to="/sick_scan" from="/scan_topic" />
+        <remap to="/sick_lidar_beacon_points" from="/lidar_beacon_points" />
     </node>
 
     <node name="sim_scoop_controller" pkg="simulation_2017" type="sim_scoop_controller.py"/>
