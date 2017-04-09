@@ -47,8 +47,8 @@
   <xacro:property name="scooplinactmountbarlength" value="${oneinch*3}" />
   <xacro:property name="scooplinactmountbaroffset" value="${oneinch*7}" />
 
-  <xacro:property name="scooplength" value="0.2" /> <!--get actual value -->
-  <xacro:property name="scoopheight" value="0.3" /> <!--get actual value -->
+  <xacro:property name="scooplength" value="${oneinch*8.6875}" />
+  <xacro:property name="scoopheight" value="${oneinch*9.6875}" />
   <xacro:property name="scoopwidth" value="${oneinch*18}" />
   <xacro:property name="scoopdistancefromaxis" value="0.03" /> <!--get actual value -->
   <xacro:property name="scoopdistanceabovecornerofaxis" value="0.04" /> <!-- get actual value -->
