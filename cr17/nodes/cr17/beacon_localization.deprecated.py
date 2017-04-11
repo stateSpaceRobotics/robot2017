@@ -64,7 +64,13 @@ class BeaconLocalizer(object):
 
         self.robot_location = (0, 0)    # Stores current robot location
 
+        self.hokuyo_transform = None
+        self.sick_transform = None
+
+
     def hokuyo_callback(self, data):
+        for i, _ in enumerate(data.points):
+            data.points[i].angle += math.pi
         self.latest_hokuyo_scan = data.points
 
     def sick_callback(self, data):
@@ -74,6 +80,16 @@ class BeaconLocalizer(object):
         '''
         Main work loop.
         '''
+        while(self.hokuyo_transform is None or self.sick_transform is None):
+            try:
+                self.hokuyo_transform = self.listener.lookupTransform("/hokuyo_lidar", "/lidar_mount", rospy.Time(0))
+                self.sick_transform = self.listener.lookupTransform("/sick_lidar", "/lidar_mount", rospy.Time(0))
+            except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException) as e:
+                continue
+
+        rospy.logerr("hokuyo transform: " + str(self.hokuyo_transform))
+        rospy.logerr("sick transform: " + str(self.sick_transform))
+
         rate = rospy.Rate(10)
         while not rospy.is_shutdown():
             self.process_beacon_points()
