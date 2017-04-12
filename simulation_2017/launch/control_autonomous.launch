@@ -36,9 +36,9 @@
 
     <node name="sim_scoop_controller" pkg="simulation_2017" type="sim_scoop_controller.py"/>
 
-    <!--<node name="high_level_state_controller" pkg="cr17" type="high_level_state_controller.py">-->
-        <!--<remap from="/beacon_localization_pose" to="/robot/standard_pose"/>-->
-    <!--</node>-->
+    <node name="high_level_state_controller" pkg="cr17" type="high_level_state_controller.py">
+        <remap from="/beacon_localization_pose" to="/robot/standard_pose"/>
+    </node>
 
 
     <node name="path_pub" pkg="cr17" type="path_pub.py"/>

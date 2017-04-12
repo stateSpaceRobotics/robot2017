@@ -70,7 +70,11 @@ class BeaconLocalizer(object):
 
     def hokuyo_callback(self, data):
         for i, _ in enumerate(data.points):
-            data.points[i].angle += math.pi
+            if data.points[i].angle > math.pi:
+                data.points[i].angle -= math.pi
+            else:
+                data.points[i].angle += math.pi
+
         self.latest_hokuyo_scan = data.points
 
     def sick_callback(self, data):
@@ -96,15 +100,15 @@ class BeaconLocalizer(object):
 
             rate.sleep()
 
-    def obj_dist(self, r_obj, l_obj):
+    def obj_dist(self, object1, object2):
         '''
         Given two objects (right object and left object), use law of cosines to calc 
          distance between the two.
         '''
-        r = r_obj.distance
-        l = l_obj.distance
-        theta = l_obj.angle - r_obj.angle
-        dist = math.sqrt(math.pow(r, 2) + math.pow(l, 2) - (2 * r * l * math.cos(theta)))
+        object1Distance = object1.distance
+        object2Distance = object2.distance
+        theta = object2.angle - object1.angle
+        dist = math.sqrt(math.pow(object1Distance, 2) + math.pow(object2Distance, 2) - (2 * object1Distance * object2Distance * math.cos(theta)))
         return dist
 
     def process_beacon_points(self):
@@ -168,14 +172,18 @@ class BeaconLocalizer(object):
             good_position = True
         # calculate orientation
         try:
-            #cosine rule, cos A = (a**2+b**2+c**2)/(2bc)
+            #cosine rule, cos A = (a**2+b**2-c**2)/(2ab)
             alpha = math.acos((beacon.actual_dist**2 + beacon.left_post.distance**2 - beacon.right_post.distance**2) / (2 * beacon.actual_dist * beacon.left_post.distance))
         except:
             pass# print("Failed to calculate orientation")
         else:
             alphaOpp = math.pi - alpha
-            theta = beacon.left_post.angle - math.pi / 2
+            theta = beacon.left_post.angle
             globOrient = alphaOpp - theta
+            rospy.logerr("beaconDist: " + str(math.degrees(beacon.actual_dist)))
+            rospy.logerr("alpha: " + str(math.degrees(alpha)))
+            rospy.logerr("theta: " + str(math.degrees(theta)))
+            rospy.logerr("globOrient: " + str(math.degrees(globOrient)))
             robOrient = globOrient - math.pi / 2
             # print("Global Orientation: %f deg" % (math.degrees(globOrient)))
             # print("Robot Orientation: %f deg" % (math.degrees(robOrient)))
