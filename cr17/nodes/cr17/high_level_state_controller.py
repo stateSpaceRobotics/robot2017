@@ -19,7 +19,7 @@ MINING_DISTANCE = rospy.get_param("distance_to_mine", 1.5)
 
 Y_IN_DUMP_RANGE = 0.4
 Y_IN_MINING_AREA = 4.5 #10 cm past edge of mining area
-Y_IN_DOCKING_AREA = 1.5
+Y_IN_DOCKING_AREA = 1.7
 
 TIME_DUMP_SEC = 10
 
@@ -62,7 +62,7 @@ class high_level_state_controller(object):
         self.dumpSetupGoal = PoseStamped()
         self.dumpSetupGoal.header.frame_id = "map"
         self.dumpSetupGoal.pose.position.x = 0
-        self.dumpSetupGoal.pose.position.y = Y_IN_DOCKING_AREA - 0.1
+        self.dumpSetupGoal.pose.position.y = Y_IN_DOCKING_AREA - 0.2
         self.dumpSetupGoal.pose.orientation.x = 0
         self.dumpSetupGoal.pose.orientation.y = 0
         self.dumpSetupGoal.pose.orientation.z = -0.7071067811865476
@@ -225,12 +225,6 @@ class high_level_state_controller(object):
                     rospy.logerr("/dockerState service call failed: %s",e)
 
             elif(self.autostate == "DUMPING"):
-                if self.dockerStatus.dockerActive:
-                    try:
-                        dockerService = rospy.ServiceProxy("/dockerState", dockerState)
-                        dockerService(False)
-                    except rospy.ServiceException, e:
-                        rospy.logerr("/dockerState service call failed: %s",e)
                 dumping_complete = False
                 if(self.dumpTimer == None):
                     self.dumpTimer = rospy.Time.now() + rospy.Duration(secs = TIME_DUMP_SEC)
@@ -239,6 +233,14 @@ class high_level_state_controller(object):
                     self.arm_postdump_state()
                 else:
                     self.arm_dump_state()
+
+            elif(self.autostate == "POST_DUMP"):
+                if self.dockerStatus.dockerActive:
+                    try:
+                        dockerService = rospy.ServiceProxy("/dockerState", dockerState)
+                        dockerService(False)
+                    except rospy.ServiceException, e:
+                        rospy.logerr("/dockerState service call failed: %s",e)
 
             ######################################################################################################
             #TODO: add code to turn the robot around
@@ -265,8 +267,10 @@ class high_level_state_controller(object):
                     self.autostate = "DUMPING"
             elif(self.autostate == "DUMPING"):
                 if(dumping_complete or (self.pose.position.y >= Y_IN_DUMP_RANGE)):
-                    self.autostate = "F_OBSTACLE_FIELD"
+                    self.autostate = "POST_DUMP"
                     self.dumpTimer = None
+            elif(self.autostate == "POST_DUMP"):
+                self.autostate = "F_OBSTACLE_FIELD"
             else:
                 self.autostate = "INIT"
 

@@ -25,6 +25,8 @@ class Docker(object):
         self.dockerActive = False
         self.pose = Pose()
 
+        self.dockingReverse = False
+
         #ROS Publishers
         self.drivePub = rospy.Publisher(DRIVE_TOPIC, Twist, queue_size = 10)
         self.dockerStatusPub = rospy.Publisher(DOCKER_TOPIC, dockerStatus, queue_size = 10)
@@ -39,6 +41,8 @@ class Docker(object):
         self.pose = data.pose
 
     def set_docker_state(self, data):
+        if (self.dockerActive != data.newDockerState) and (data.newDockerState):
+            self.dockingReverse = True
         self.dockerActive = data.newDockerState
         return dockerStateResponse(self.dockerActive)
 
@@ -58,8 +62,6 @@ class Docker(object):
                 driveTwist.linear.x = (currentY - Y_TARGET) * Y_SCALAR
                 driveTwist.angular.z = (currentYaw - YAW_TARGET) * YAW_SCALAR
 
-                rospy.logwarn(currentYaw)
-
                 currentStatus.dockingComplete = False
 
                 if abs(currentY - Y_TARGET) < Y_RANGE:
@@ -69,6 +71,14 @@ class Docker(object):
                         driveTwist.angular.z = 0
 
                 self.drivePub.publish(driveTwist)
+
+            elif self.dockingReverse:
+                driveTwist = Twist()
+                driveTwist.linear.x = -20
+                for each in range(0, 30):
+                    self.drivePub.publish(driveTwist)
+                    rate.sleep()
+                self.dockingReverse = False
 
             else:
                 currentStatus.dockingComplete = False
