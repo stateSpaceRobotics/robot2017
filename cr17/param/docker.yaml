@@ -1,0 +1,7 @@
+docker:
+    y_target: 0.7
+    y_range: 0.08
+    y_scalar: 1.5
+    yaw_target: -1.57079632679
+    yaw_range: 0.2
+    yaw_scalar: -1.5

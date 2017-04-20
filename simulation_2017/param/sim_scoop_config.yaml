@@ -1,11 +1,11 @@
 scoop_config:
-  driving_arm_angle: 0
+  driving_arm_angle: -50   #0
   driving_scoop_angle: -20
   pre_dig_arm_angle: 70
   pre_dig_scoop_angle: 100
   digging_arm_angle: 70
   digging_scoop_angle: 100
-  post_dig_arm_angle: 50
+  post_dig_arm_angle: 0
   post_dig_scoop_angle: -30
   pre_dump_arm_angle: -45
   pre_dump_scoop_angle: -30

@@ -15,7 +15,7 @@ topics:
     lidar:
         hokuyo: "/hokuyo_scan"
         sick: "/sick_scan"
-
+    docker_status: "/docker_status"
 
 
     # op_mode: operation_mode                                 # ROS String msgs, operation mode for robot

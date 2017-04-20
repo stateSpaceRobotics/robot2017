@@ -15,8 +15,14 @@
     <rosparam command="load" file="$(find cr17)/param/beacon_localization.yaml"/>
     <rosparam command="load" file="$(find simulation_2017)/param/sim_scoop_config.yaml"/>
     <rosparam command="load" file="$(find cr17)/param/topics.yaml"/>
+    <rosparam command="load" file="$(find cr17)/param/docker.yaml"/>
 
     <node name="navigator" pkg="cr17" type="navigator.py">
+        <!--<remap from="cmd_vel" to="/cr17_diff_drive_controller/cmd_vel"/>-->
+        <remap from="/beacon_localization_pose" to="/robot/standard_pose"/>
+    </node>
+
+    <node name="docker" pkg="cr17" type="docker.py">
         <remap from="cmd_vel" to="/cr17_diff_drive_controller/cmd_vel"/>
         <remap from="/beacon_localization_pose" to="/robot/standard_pose"/>
     </node>
@@ -40,9 +46,8 @@
         <remap from="/beacon_localization_pose" to="/robot/standard_pose"/>
     </node>
 
-
-    <node name="path_pub" pkg="cr17" type="path_pub.py"/>
-
 <!--     <node name="magic_odomFromGazebo" pkg="simulation_2017" type="magic_odomFromGazebo.py"/>
  -->
+    <include file="$(find cr17)/launch/move_base.launch"/>
+
 </launch>
