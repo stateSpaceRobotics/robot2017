@@ -12,6 +12,9 @@ find_package(catkin REQUIRED COMPONENTS
   tf
   message_generation
   joy
+  pcl_conversions
+  pcl_ros
+  sensor_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -134,6 +137,10 @@ include_directories(
 
 ## Declare a C++ executable
 # add_executable(cr17_node src/cr17_node.cpp)
+
+add_executable(cr17_node nodes/cr17/plane_detector_node.cc)
+target_link_libraries(cr17_node ${catkin_LIBRARIES})
+
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
