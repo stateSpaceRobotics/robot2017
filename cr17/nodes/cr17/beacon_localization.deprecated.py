@@ -180,10 +180,10 @@ class BeaconLocalizer(object):
             alphaOpp = math.pi - alpha
             theta = beacon.left_post.angle
             globOrient = alphaOpp - theta
-            rospy.logerr("beaconDist: " + str(math.degrees(beacon.actual_dist)))
-            rospy.logerr("alpha: " + str(math.degrees(alpha)))
-            rospy.logerr("theta: " + str(math.degrees(theta)))
-            rospy.logerr("globOrient: " + str(math.degrees(globOrient)))
+            # rospy.logerr("beaconDist: " + str(math.degrees(beacon.actual_dist)))
+            # rospy.logerr("alpha: " + str(math.degrees(alpha)))
+            # rospy.logerr("theta: " + str(math.degrees(theta)))
+            # rospy.logerr("globOrient: " + str(math.degrees(globOrient)))
             robOrient = globOrient - math.pi / 2
             # print("Global Orientation: %f deg" % (math.degrees(globOrient)))
             # print("Robot Orientation: %f deg" % (math.degrees(robOrient)))
@@ -230,7 +230,7 @@ class BeaconLocalizer(object):
             transformX = pose.pose.position.x #+ trans[0] #pose_mag * math.sin(pose_ang)
             transformY = pose.pose.position.y #+ trans[1] #pose_mag * math.cos(pose_ang)
             br = tf.TransformBroadcaster()
-            br.sendTransform((transformX, transformY, 0), quaternion_from_euler(0, 0, globOrient), rospy.Time.now(), "base_link", "origin")#"rear_lidar_pos_global" )
+            br.sendTransform((transformX, transformY, 0), quaternion_from_euler(0, 0, globOrient), rospy.Time.now(), "base_link", "odom")#"rear_lidar_pos_global" )
             # br = tf.TransformBroadcaster()
             # br.sendTransform((-3, -3, -0.5), quaternion_from_euler(0, 0, 0), rospy.Time.now(), "map_origin", "origin" )
 
