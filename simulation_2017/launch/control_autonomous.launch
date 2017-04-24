@@ -1,6 +1,10 @@
 <launch>
 
-    <include file="$(find simulation_2017)/launch/RMC_field.launch"/>
+    <arg name="rvizconfig" default="$(find simulation_2017)/rviz/autonomy.rviz"/>
+
+    <include file="$(find simulation_2017)/launch/RMC_field.launch">
+        <arg name="rvizconfig" value="$(arg rvizconfig)"/>
+    </include>
 
     <!--<include file="$(find cr17)/launch/aruco.launch">
       <arg name="rear_camera" default="/camera" />

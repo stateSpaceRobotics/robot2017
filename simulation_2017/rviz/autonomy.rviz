@@ -1,0 +1,768 @@
+Panels:
+  - Class: rviz/Displays
+    Help Height: 78
+    Name: Displays
+    Property Tree Widget:
+      Expanded:
+        - /Global Options1
+        - /Status1
+        - /Path2
+      Splitter Ratio: 0.5
+    Tree Height: 462
+  - Class: rviz/Selection
+    Name: Selection
+  - Class: rviz/Tool Properties
+    Expanded:
+      - /2D Pose Estimate1
+      - /2D Nav Goal1
+      - /Publish Point1
+    Name: Tool Properties
+    Splitter Ratio: 0.588679
+  - Class: rviz/Views
+    Expanded:
+      - /Current View1
+    Name: Views
+    Splitter Ratio: 0.5
+  - Class: rviz/Time
+    Experimental: false
+    Name: Time
+    SyncMode: 0
+    SyncSource: PointCloud2
+Visualization Manager:
+  Class: ""
+  Displays:
+    - Alpha: 0.5
+      Cell Size: 1
+      Class: rviz/Grid
+      Color: 160; 160; 164
+      Enabled: true
+      Line Style:
+        Line Width: 0.03
+        Value: Lines
+      Name: Grid
+      Normal Cell Count: 0
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Plane: XY
+      Plane Cell Count: 10
+      Reference Frame: <Fixed Frame>
+      Value: true
+    - Class: rviz/TF
+      Enabled: true
+      Frame Timeout: 15
+      Frames:
+        All Enabled: true
+        base_link:
+          Value: true
+        front_camera_depth_frame:
+          Value: true
+        front_camera_depth_optical_frame:
+          Value: true
+        front_camera_link:
+          Value: true
+        front_camera_rgb_frame:
+          Value: true
+        front_camera_rgb_optical_frame:
+          Value: true
+        front_horizontal_support:
+          Value: true
+        front_kinect:
+          Value: true
+        front_kinect_mount:
+          Value: true
+        hokuyo_lidar:
+          Value: true
+        left_armbase:
+          Value: true
+        left_back_wheel:
+          Value: true
+        left_back_wheel_mount:
+          Value: true
+        left_base:
+          Value: true
+        left_edge_of_scoop:
+          Value: true
+        left_front_wheel:
+          Value: true
+        left_front_wheel_mount:
+          Value: true
+        left_linactmnt_horiz:
+          Value: true
+        left_linactmnt_vert:
+          Value: true
+        left_lower_arm:
+          Value: true
+        left_lower_brace_bar:
+          Value: true
+        left_scoop_actuator_mount:
+          Value: true
+        left_scoop_actuator_mount_bar:
+          Value: true
+        left_scoop_axis:
+          Value: true
+        left_scoop_back_plane:
+          Value: true
+        left_scoop_lower_plane:
+          Value: true
+        left_upper_arm:
+          Value: true
+        left_upper_linear_actuator_mount:
+          Value: true
+        lidar_mount:
+          Value: true
+        map:
+          Value: true
+        odom:
+          Value: true
+        rear_camera_depth_frame:
+          Value: true
+        rear_camera_depth_optical_frame:
+          Value: true
+        rear_camera_link:
+          Value: true
+        rear_camera_rgb_frame:
+          Value: true
+        rear_camera_rgb_optical_frame:
+          Value: true
+        rear_kinect:
+          Value: true
+        rear_kinect_mount:
+          Value: true
+        right_armbase:
+          Value: true
+        right_back_wheel:
+          Value: true
+        right_back_wheel_mount:
+          Value: true
+        right_base:
+          Value: true
+        right_edge_of_scoop:
+          Value: true
+        right_front_wheel:
+          Value: true
+        right_front_wheel_mount:
+          Value: true
+        right_linactmnt_horiz:
+          Value: true
+        right_linactmnt_vert:
+          Value: true
+        right_lower_arm:
+          Value: true
+        right_lower_brace_bar:
+          Value: true
+        right_scoop_actuator_mount:
+          Value: true
+        right_scoop_actuator_mount_bar:
+          Value: true
+        right_scoop_axis:
+          Value: true
+        right_scoop_back_plane:
+          Value: true
+        right_scoop_lower_plane:
+          Value: true
+        right_upper_arm:
+          Value: true
+        right_upper_linear_actuator_mount:
+          Value: true
+        robot:
+          Value: true
+        sick_lidar:
+          Value: true
+        test:
+          Value: true
+      Marker Scale: 1
+      Name: TF
+      Show Arrows: true
+      Show Axes: false
+      Show Names: false
+      Tree:
+        odom:
+          base_link:
+            front_horizontal_support:
+              front_kinect_mount:
+                front_kinect:
+                  front_camera_rgb_frame:
+                    front_camera_depth_frame:
+                      front_camera_depth_optical_frame:
+                        {}
+                    front_camera_link:
+                      {}
+                    front_camera_rgb_optical_frame:
+                      {}
+            left_base:
+              left_armbase:
+                left_upper_arm:
+                  left_lower_arm:
+                    left_scoop_axis:
+                      left_scoop_back_plane:
+                        left_scoop_actuator_mount:
+                          {}
+                        left_scoop_lower_plane:
+                          left_edge_of_scoop:
+                            {}
+                  left_lower_brace_bar:
+                    left_scoop_actuator_mount_bar:
+                      {}
+                  left_upper_linear_actuator_mount:
+                    {}
+              left_back_wheel_mount:
+                left_back_wheel:
+                  {}
+              left_front_wheel_mount:
+                left_front_wheel:
+                  {}
+              left_linactmnt_vert:
+                left_linactmnt_horiz:
+                  {}
+            lidar_mount:
+              hokuyo_lidar:
+                {}
+              sick_lidar:
+                {}
+            rear_kinect_mount:
+              rear_kinect:
+                rear_camera_rgb_frame:
+                  rear_camera_depth_frame:
+                    rear_camera_depth_optical_frame:
+                      {}
+                  rear_camera_link:
+                    {}
+                  rear_camera_rgb_optical_frame:
+                    {}
+            right_base:
+              right_armbase:
+                right_upper_arm:
+                  right_lower_arm:
+                    right_scoop_axis:
+                      right_scoop_back_plane:
+                        right_scoop_actuator_mount:
+                          {}
+                        right_scoop_lower_plane:
+                          right_edge_of_scoop:
+                            {}
+                  right_lower_brace_bar:
+                    right_scoop_actuator_mount_bar:
+                      {}
+                  right_upper_linear_actuator_mount:
+                    {}
+              right_back_wheel_mount:
+                right_back_wheel:
+                  {}
+              right_front_wheel_mount:
+                right_front_wheel:
+                  {}
+              right_linactmnt_vert:
+                right_linactmnt_horiz:
+                  {}
+            robot:
+              {}
+          map:
+            {}
+          test:
+            {}
+      Update Interval: 0
+      Value: true
+    - Alpha: 0.7
+      Class: rviz/Map
+      Color Scheme: map
+      Draw Behind: false
+      Enabled: false
+      Name: Map
+      Topic: /map
+      Unreliable: false
+      Value: false
+    - Alpha: 1
+      Class: rviz/RobotModel
+      Collision Enabled: false
+      Enabled: true
+      Links:
+        All Links Enabled: true
+        Expand Joint Details: false
+        Expand Link Details: false
+        Expand Tree: false
+        Link Tree Style: Links in Alphabetic Order
+        base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        front_camera_depth_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        front_camera_depth_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        front_camera_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        front_camera_rgb_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        front_camera_rgb_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        front_horizontal_support:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        front_kinect:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        front_kinect_mount:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        hokuyo_lidar:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_armbase:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_back_wheel:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_back_wheel_mount:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_base:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_edge_of_scoop:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_front_wheel:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_front_wheel_mount:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_linactmnt_horiz:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_linactmnt_vert:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_lower_arm:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_lower_brace_bar:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_scoop_actuator_mount:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_scoop_actuator_mount_bar:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_scoop_axis:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_scoop_back_plane:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_scoop_lower_plane:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_upper_arm:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_upper_linear_actuator_mount:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        lidar_mount:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        rear_camera_depth_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        rear_camera_depth_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        rear_camera_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        rear_camera_rgb_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        rear_camera_rgb_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        rear_kinect:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        rear_kinect_mount:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_armbase:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_back_wheel:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_back_wheel_mount:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_base:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_edge_of_scoop:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_front_wheel:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_front_wheel_mount:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_linactmnt_horiz:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_linactmnt_vert:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_lower_arm:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_lower_brace_bar:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_scoop_actuator_mount:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_scoop_actuator_mount_bar:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_scoop_axis:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_scoop_back_plane:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_scoop_lower_plane:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_upper_arm:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_upper_linear_actuator_mount:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        sick_lidar:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+      Name: RobotModel
+      Robot Description: robot_description
+      TF Prefix: ""
+      Update Interval: 0
+      Value: true
+      Visual Enabled: true
+    - Alpha: 0.7
+      Class: rviz/Map
+      Color Scheme: map
+      Draw Behind: false
+      Enabled: true
+      Name: Map
+      Topic: /move_base/local_costmap/costmap
+      Unreliable: false
+      Value: true
+    - Alpha: 0.7
+      Class: rviz/Map
+      Color Scheme: map
+      Draw Behind: false
+      Enabled: true
+      Name: Map
+      Topic: /move_base/global_costmap/costmap
+      Unreliable: false
+      Value: true
+    - Alpha: 1
+      Class: rviz/Polygon
+      Color: 25; 255; 0
+      Enabled: true
+      Name: Polygon
+      Topic: /move_base/local_costmap/footprint
+      Unreliable: false
+      Value: true
+    - Alpha: 1
+      Class: rviz/Polygon
+      Color: 25; 255; 0
+      Enabled: true
+      Name: Polygon
+      Topic: /move_base/global_costmap/footprint
+      Unreliable: false
+      Value: true
+    - Alpha: 1
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/PointCloud2
+      Color: 255; 255; 255
+      Color Transformer: RGB8
+      Decay Time: 0
+      Enabled: true
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Max Intensity: 4096
+      Min Color: 0; 0; 0
+      Min Intensity: 0
+      Name: PointCloud2
+      Position Transformer: XYZ
+      Queue Size: 10
+      Selectable: true
+      Size (Pixels): 3
+      Size (m): 0.01
+      Style: Flat Squares
+      Topic: /front_camera/depth/points
+      Unreliable: false
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: true
+    - Alpha: 1
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/PointCloud2
+      Color: 255; 255; 255
+      Color Transformer: RGB8
+      Decay Time: 0
+      Enabled: true
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Max Intensity: 4096
+      Min Color: 0; 0; 0
+      Min Intensity: 0
+      Name: PointCloud2
+      Position Transformer: XYZ
+      Queue Size: 10
+      Selectable: true
+      Size (Pixels): 3
+      Size (m): 0.01
+      Style: Flat Squares
+      Topic: /rear_camera/depth/points
+      Unreliable: false
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: true
+    - Alpha: 1
+      Buffer Length: 1
+      Class: rviz/Path
+      Color: 255; 85; 255
+      Enabled: true
+      Head Diameter: 0.3
+      Head Length: 0.2
+      Length: 0.3
+      Line Style: Lines
+      Line Width: 0.03
+      Name: Path
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Pose Style: None
+      Radius: 0.03
+      Shaft Diameter: 0.1
+      Shaft Length: 0.1
+      Topic: /move_base/NavfnROS/plan
+      Unreliable: false
+      Value: true
+    - Alpha: 1
+      Axes Length: 1
+      Axes Radius: 0.1
+      Class: rviz/Pose
+      Color: 255; 25; 0
+      Enabled: true
+      Head Length: 0.3
+      Head Radius: 0.1
+      Name: Pose
+      Shaft Length: 1
+      Shaft Radius: 0.05
+      Shape: Arrow
+      Topic: /nav_goal
+      Unreliable: false
+      Value: true
+    - Alpha: 1
+      Buffer Length: 1
+      Class: rviz/Path
+      Color: 255; 85; 255
+      Enabled: true
+      Head Diameter: 0.3
+      Head Length: 0.2
+      Length: 0.3
+      Line Style: Lines
+      Line Width: 0.03
+      Name: Path
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Pose Style: None
+      Radius: 0.03
+      Shaft Diameter: 0.1
+      Shaft Length: 0.1
+      Topic: /move_base/TebLocalPlannerROS/local_plan
+      Unreliable: false
+      Value: true
+  Enabled: true
+  Global Options:
+    Background Color: 48; 48; 48
+    Fixed Frame: map
+    Frame Rate: 30
+  Name: root
+  Tools:
+    - Class: rviz/Interact
+      Hide Inactive Objects: true
+    - Class: rviz/MoveCamera
+    - Class: rviz/Select
+    - Class: rviz/FocusCamera
+    - Class: rviz/Measure
+    - Class: rviz/SetInitialPose
+      Topic: /initialpose
+    - Class: rviz/SetGoal
+      Topic: /move_base_simple/goal
+    - Class: rviz/PublishPoint
+      Single click: true
+      Topic: /clicked_point
+  Value: true
+  Views:
+    Current:
+      Class: rviz/Orbit
+      Distance: 8.90077
+      Enable Stereo Rendering:
+        Stereo Eye Separation: 0.06
+        Stereo Focal Distance: 1
+        Swap Stereo Eyes: false
+        Value: false
+      Focal Point:
+        X: -0.298386
+        Y: 1.99139
+        Z: 0.419613
+      Name: Current View
+      Near Clip Distance: 0.01
+      Pitch: 1.4048
+      Target Frame: <Fixed Frame>
+      Value: Orbit (rviz)
+      Yaw: 2.98495
+    Saved: ~
+Window Geometry:
+  Displays:
+    collapsed: false
+  Height: 743
+  Hide Left Dock: false
+  Hide Right Dock: true
+  QMainWindow State: 000000ff00000000fd00000004000000000000016a0000025dfc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000006400fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c00610079007301000000280000025d000000dd00fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000010f0000025dfc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a0056006900650077007300000000280000025d000000b000fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000004b00000003efc0100000002fb0000000800540069006d00650100000000000004b0000002f600fffffffb0000000800540069006d00650100000000000004500000000000000000000003400000025d00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  Selection:
+    collapsed: false
+  Time:
+    collapsed: false
+  Tool Properties:
+    collapsed: false
+  Views:
+    collapsed: true
+  Width: 1200
+  X: 63
+  Y: 14
