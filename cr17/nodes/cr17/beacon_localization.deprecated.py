@@ -55,7 +55,6 @@ class BeaconLocalizer(object):
         rospy.Subscriber("/hokuyo_lidar_beacon_points", localizationPoints, self.hokuyo_callback)
         rospy.Subscriber("/sick_lidar_beacon_points", localizationPoints, self.sick_callback)
 
-        #self.vis_scan_pub = rospy.Publisher("vis_scan", LaserScan, queue_size = 10)
         self.pose_pub = rospy.Publisher(ROBOPOSE_TOPIC, PoseStamped, queue_size = 10)
         self.beacon_lost_pub = rospy.Publisher(self.BEACON_LOST_TOPIC, Bool, queue_size = 10)
 
@@ -67,14 +66,12 @@ class BeaconLocalizer(object):
         self.hokuyo_transform = None
         self.sick_transform = None
 
-
     def hokuyo_callback(self, data):
         for i, _ in enumerate(data.points):
             if data.points[i].angle > math.pi:
                 data.points[i].angle -= math.pi
             else:
                 data.points[i].angle += math.pi
-
         self.latest_hokuyo_scan = data.points
 
     def sick_callback(self, data):
@@ -91,13 +88,9 @@ class BeaconLocalizer(object):
             except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException) as e:
                 continue
 
-        rospy.logerr("hokuyo transform: " + str(self.hokuyo_transform))
-        rospy.logerr("sick transform: " + str(self.sick_transform))
-
         rate = rospy.Rate(10)
         while not rospy.is_shutdown():
             self.process_beacon_points()
-
             rate.sleep()
 
     def obj_dist(self, object1, object2):
@@ -108,17 +101,32 @@ class BeaconLocalizer(object):
         object1Distance = object1.distance
         object2Distance = object2.distance
         theta = object2.angle - object1.angle
-        dist = math.sqrt(math.pow(object1Distance, 2) + math.pow(object2Distance, 2) - (2 * object1Distance * object2Distance * math.cos(theta)))
+        dist = math.sqrt(object1Distance**2 + object2Distance**2 - (2 * object1Distance * object2Distance * math.cos(theta)))
         return dist
 
-    def process_beacon_points(self):
-        scan_objs = self.latest_hokuyo_scan + self.latest_sick_scan
+    def wrap_angle(self, angle):
+        r_angle = angle
+        while r_angle <= -math.pi:
+            r_angle += 2 * math.pi
+        while r_angle >= math.pi:
+            r_angle -= 2 * math.pi
+        return r_angle
 
-        # print("num objects: " + str(len(scan_objs)))
-        # for obj in scan_objs:
-        #     print("~ OBJ")
-        #     print("    ~ Angle: " + str(math.degrees(obj.angle)))
-        #     print("    ~ Length: " + str(obj.length))
+    def process_beacon_points(self):
+        # rospy.logerr("SICK objects: " + str(len(self.latest_sick_scan)))
+        # for obj in self.latest_sick_scan:
+        #     rospy.logerr("~ OBJ")
+        #     rospy.logerr("    ~ Angle: " + str(math.degrees(obj.angle)))
+        #     rospy.logerr("    ~ Distance: " + str(obj.distance))
+        #
+        # rospy.logerr("Hokuyo objects: " + str(len(self.latest_hokuyo_scan)))
+        # for obj in self.latest_hokuyo_scan:
+        #     rospy.logerr("~ OBJ")
+        #     rospy.logerr("    ~ Angle: " + str(math.degrees(obj.angle)))
+        #     rospy.logerr("    ~ Distance: " + str(obj.distance))
+
+        scan_objs = self.latest_sick_scan + self.latest_hokuyo_scan
+
         ######################
         # Find the beacon (two posts distanced a known distance apart)
         ######################
@@ -130,6 +138,7 @@ class BeaconLocalizer(object):
             for li in xrange(ri  + 1, len(scan_objs)):
                 r_obj = scan_objs[ri] # Grab right object for easy use
                 l_obj = scan_objs[li] # Grab left object for easy use
+
                 dist = self.obj_dist(r_obj, l_obj)  # calculate distance between right and left objects
                 # check if dist indicates these two objects are a potential beacon
                 # print("==== OBJ DIST ====")
@@ -139,17 +148,17 @@ class BeaconLocalizer(object):
                         beacon = Beacon(right_post = r_obj, left_post = l_obj, actual_dist = dist, err = beacon_err)
                         min_beacon_err = beacon_err
                         # print("Potential Beacon (err: " + str(beacon_err))
-                ## Debugging/verbose information
-                # print("Right Obj: (Centroid: %d, Angle: %f)" % (r_obj.centroid, math.degrees(r_obj.angle)))
-                # print("Left Obj: (Centroid: %d, Angle: %f)" % (l_obj.centroid, math.degrees(l_obj.angle)))
-                # print("Distance: " + str(self.obj_dist(r_obj, l_obj)))
     
         ## More debugging/verbose information
         if beacon != None:
-            pass
-            # print("~~~ BEACON ~~~")
-            # print("(Centroid: %d, Angle: %f) ------ (Centroid %d, Angle %f)" % (beacon.left_post.centroid, math.degrees(beacon.left_post.angle), beacon.right_post.centroid, math.degrees(beacon.right_post.angle)))
-            # print("Distance: " + str(beacon.actual_dist) + " (err: " + str(beacon.err) + ")")
+            if not 0 < (beacon.left_post.angle - beacon.right_post.angle) < math.pi and not (beacon.left_post.angle - beacon.right_post.angle) < -math.pi:
+                rospy.logerr("swapping left and right beacons: %f" % math.degrees(beacon.left_post.angle - beacon.right_post.angle))
+                beacon.left_post, beacon.right_post = beacon.right_post, beacon.left_post
+
+            rospy.logerr("~~~ BEACON ~~~")
+            rospy.logerr("Left Distance: %f, Angle: %f" % (beacon.left_post.distance, math.degrees(beacon.left_post.angle)))
+            rospy.logerr("Right Distance %f, Angle %f" % (beacon.right_post.distance, math.degrees(beacon.right_post.angle)))
+            rospy.logerr("Distance between posts: " + str(beacon.actual_dist) + " (err: " + str(beacon.err) + ")")
         else:
             # print("~~~ BEACON ~~~")
             # print("Failed to find.")
@@ -162,32 +171,38 @@ class BeaconLocalizer(object):
         ###########################
         # calculate global position
         try:
-            xloc = (beacon.left_post.distance**2 - beacon.right_post.distance**2 - self.LEFT_POST_LOC[0]**2 + self.RIGHT_POST_LOC[0]**2) / (2*(self.RIGHT_POST_LOC[0] - self.LEFT_POST_LOC[0]))
+            xloc = (-beacon.left_post.distance**2 + beacon.right_post.distance**2 - self.LEFT_POST_LOC[0]**2 + self.RIGHT_POST_LOC[0]**2) / (2*(self.RIGHT_POST_LOC[0] - self.LEFT_POST_LOC[0]))
             yloc = math.sqrt(beacon.right_post.distance**2 - (xloc - self.RIGHT_POST_LOC[0])**2)
         except:
-            pass# print("Failed to calculate global position.")
+            pass
         else:
             self.robot_location = (xloc, yloc)
-            # print("ROBOT LOCATION: (%f, %f)" % (self.robot_location[0], self.robot_location[1]))
+            rospy.logerr("ROBOT LOCATION: (%f, %f)" % (self.robot_location[0], self.robot_location[1]))
             good_position = True
+
         # calculate orientation
         try:
             #cosine rule, cos A = (a**2+b**2-c**2)/(2ab)
             alpha = math.acos((beacon.actual_dist**2 + beacon.left_post.distance**2 - beacon.right_post.distance**2) / (2 * beacon.actual_dist * beacon.left_post.distance))
         except:
-            pass# print("Failed to calculate orientation")
+            pass
         else:
             alphaOpp = math.pi - alpha
             theta = beacon.left_post.angle
             globOrient = alphaOpp - theta
-            # rospy.logerr("beaconDist: " + str(math.degrees(beacon.actual_dist)))
-            # rospy.logerr("alpha: " + str(math.degrees(alpha)))
-            # rospy.logerr("theta: " + str(math.degrees(theta)))
-            # rospy.logerr("globOrient: " + str(math.degrees(globOrient)))
-            robOrient = globOrient - math.pi / 2
-            # print("Global Orientation: %f deg" % (math.degrees(globOrient)))
-            # print("Robot Orientation: %f deg" % (math.degrees(robOrient)))
+            globOrient = self.wrap_angle(globOrient)
+            rospy.logerr("Global Orientation: %f deg" % (math.degrees(globOrient)))
             good_orientation = True
+
+        # rospy.logerr("beaconDist: " + str(math.degrees(beacon.actual_dist)))
+        # rospy.logerr("alpha: " + str(math.degrees(alpha)))
+        # rospy.logerr("theta: " + str(math.degrees(theta)))
+        # rospy.logerr("globOrient: " + str(math.degrees(globOrient)))
+        robOrient = globOrient - math.pi / 2
+        # print("Global Orientation: %f deg" % (math.degrees(globOrient)))
+        # print("Robot Orientation: %f deg" % (math.degrees(robOrient)))
+
+
         #################################
         # Build Pose message and publish
         #################################
@@ -195,14 +210,15 @@ class BeaconLocalizer(object):
             pose = PoseStamped() # GLOBAL
             pose.header.stamp = rospy.Time.now()
             pose.header.frame_id = "rear_lidar"
+
             # set position
             pose.pose.position.x = self.robot_location[0]
             pose.pose.position.y = self.robot_location[1]
             pose.pose.position.z = 0
+
             # set orientation
             roll = 0
             pitch = 0
-            #yaw = robOrient
             yaw = globOrient
             quat = quaternion_from_euler(roll, pitch, yaw)
             pose.pose.orientation.x = quat[0]
@@ -211,31 +227,11 @@ class BeaconLocalizer(object):
             pose.pose.orientation.w = quat[3]
 
 
-
-#             pose_mag = beacon.left_post.distance #math.sqrt(pose.pose.position.y**2 + pose.pose.position.x**2)
-#             pose_ang = beacon.left_post.angle#angle
-#             x1 = beacon.left_post.distance * math.sin(beacon.left_post.angle)
-#             y1 = beacon.left_post.distance * math.cos(beacon.left_post.angle)
-#             x2 = beacon.right_post.distance * math.sin(beacon.right_post.angle)
-#             y2 = beacon.right_post.distance * math.cos(beacon.right_post.angle)
-
-#             transformX = (x1+x2)/2
-#             transformY = -(y1+y2)/2
-
-#             br = tf.TransformBroadcaster()
-#             br.sendTransform((transformX, transformY, 0), quaternion_from_euler(0, 0, globOrient), rospy.Time.now(), "origin", "base_laser_link")#"rear_lidar_pos_global" )
-            #(trans,rot) = self.listener.lookupTransform('base_laser_link', 'odom', rospy.Time(0))
-            pose_mag = math.sqrt(pose.pose.position.y**2 + pose.pose.position.x**2)
-            pose_ang = globOrient
-            transformX = pose.pose.position.x #+ trans[0] #pose_mag * math.sin(pose_ang)
-            transformY = pose.pose.position.y #+ trans[1] #pose_mag * math.cos(pose_ang)
+            transformX = pose.pose.position.x
+            transformY = pose.pose.position.y
             br = tf.TransformBroadcaster()
-            br.sendTransform((transformX, transformY, 0), quaternion_from_euler(0, 0, globOrient), rospy.Time.now(), "base_link", "odom")#"rear_lidar_pos_global" )
-            # br = tf.TransformBroadcaster()
-            # br.sendTransform((-3, -3, -0.5), quaternion_from_euler(0, 0, 0), rospy.Time.now(), "map_origin", "origin" )
+            br.sendTransform((transformX, transformY, 0), quaternion_from_euler(0, 0, globOrient), rospy.Time.now(), "base_link", "odom")
 
-            # publish pose
-            # print("Publishing pose.")
             beacon_lost = Bool(False)
             self.beacon_lost_pub.publish(beacon_lost)
             self.pose_pub.publish(pose)
