@@ -22,8 +22,8 @@
 	<node pkg="ar_sys" type="multi_boards" name="ar_multi_board">
 
 		<!-- May need tweaking based on kinect/realsense -->
-		<remap from="/camera_info" to="$(arg rear_camera)/camera_info" />
-		<remap from="/image" to="$(arg rear_camera)/image_raw" />
+		<remap from="/camera_info" to="$(arg camera_ns)/camera_info" />
+		<remap from="/image" to="$(arg camera_ns)/image_raw" />
 
 		<param name="image_is_rectified" type="bool" value="true"/>
 

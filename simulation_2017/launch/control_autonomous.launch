@@ -6,15 +6,17 @@
         <arg name="rvizconfig" value="$(arg rvizconfig)"/>
     </include>
 
-    <!--<include file="$(find cr17)/launch/aruco.launch">
-      <arg name="rear_camera" default="/camera" />
-          <arg name="marker_size" default="0.19685" />
-          <arg name="board_directory" default="$(find cr17)/param" />
-          <arg name="boards_config" default="$(find cr17)/param/boardsConfiguration.yml" />
-          <arg name="intraboard_transform" default="0 -0.231775 0 0 0 0 1 /bigBoard /lilBoard 100" />
-          <arg name="world_to_bigBoard_transform" default="0 0 0 0 0.7071067811865475 0.7071067811865475 0 /bigBoard /world 100" />
-          <arg name="transform_topic" default="/ar_multi_board/transform" />
-      </include>-->
+    <include file="$(find cr17)/launch/aruco.launch">
+        <arg name="world_frame" value="map" />
+        <arg name="target_frame" value="base_link" />
+        <arg name="camera_ns" value="/camera" />
+        <!--<arg name="marker_size" default="0.19685" />-->
+        <arg name="board_directory" value="$(find cr17)/param" />
+        <arg name="boards_config" value="$(find cr17)/param/boardsConfiguration.yml" />
+        <!--<arg name="intraboard_transform" default="0 -0.231775 0 0 0 0 1 /bigBoard /lilBoard 100" />-->
+        <!--<arg name="world_to_bigBoard_transform" default="0 0 0 0 0.7071067811865475 0.7071067811865475 0 /bigBoard /world 100" />-->
+        <!--<arg name="transform_topic" default="/ar_multi_board/transform" />-->
+    </include>
 
     <rosparam command="load" file="$(find cr17)/param/beacon_localization.yaml"/>
     <rosparam command="load" file="$(find simulation_2017)/param/sim_scoop_config.yaml"/>
