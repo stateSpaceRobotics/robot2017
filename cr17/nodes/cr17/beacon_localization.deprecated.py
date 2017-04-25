@@ -152,13 +152,13 @@ class BeaconLocalizer(object):
         ## More debugging/verbose information
         if beacon != None:
             if not 0 < (beacon.left_post.angle - beacon.right_post.angle) < math.pi and not (beacon.left_post.angle - beacon.right_post.angle) < -math.pi:
-                rospy.logerr("swapping left and right beacons: %f" % math.degrees(beacon.left_post.angle - beacon.right_post.angle))
+                # rospy.logerr("swapping left and right beacons: %f" % math.degrees(beacon.left_post.angle - beacon.right_post.angle))
                 beacon.left_post, beacon.right_post = beacon.right_post, beacon.left_post
 
-            rospy.logerr("~~~ BEACON ~~~")
-            rospy.logerr("Left Distance: %f, Angle: %f" % (beacon.left_post.distance, math.degrees(beacon.left_post.angle)))
-            rospy.logerr("Right Distance %f, Angle %f" % (beacon.right_post.distance, math.degrees(beacon.right_post.angle)))
-            rospy.logerr("Distance between posts: " + str(beacon.actual_dist) + " (err: " + str(beacon.err) + ")")
+            # rospy.logerr("~~~ BEACON ~~~")
+            # rospy.logerr("Left Distance: %f, Angle: %f" % (beacon.left_post.distance, math.degrees(beacon.left_post.angle)))
+            # rospy.logerr("Right Distance %f, Angle %f" % (beacon.right_post.distance, math.degrees(beacon.right_post.angle)))
+            # rospy.logerr("Distance between posts: " + str(beacon.actual_dist) + " (err: " + str(beacon.err) + ")")
         else:
             # print("~~~ BEACON ~~~")
             # print("Failed to find.")
@@ -177,7 +177,7 @@ class BeaconLocalizer(object):
             pass
         else:
             self.robot_location = (xloc, yloc)
-            rospy.logerr("ROBOT LOCATION: (%f, %f)" % (self.robot_location[0], self.robot_location[1]))
+            # rospy.logerr("ROBOT LOCATION: (%f, %f)" % (self.robot_location[0], self.robot_location[1]))
             good_position = True
 
         # calculate orientation
@@ -191,7 +191,7 @@ class BeaconLocalizer(object):
             theta = beacon.left_post.angle
             globOrient = alphaOpp - theta
             globOrient = self.wrap_angle(globOrient)
-            rospy.logerr("Global Orientation: %f deg" % (math.degrees(globOrient)))
+            # rospy.logerr("Global Orientation: %f deg" % (math.degrees(globOrient)))
             good_orientation = True
 
         # rospy.logerr("beaconDist: " + str(math.degrees(beacon.actual_dist)))

@@ -5,8 +5,8 @@
     <!--- Run AMCL, which I think is not needed -->
     <!--<include file="$(find amcl)/examples/amcl_diff.launch" />-->
 
-    <node pkg="tf" type="static_transform_publisher" name="odom_to_map"
-          args="0 0 0 0 0 0 1 odom map 100" />
+    <node pkg="tf" type="static_transform_publisher" name="map_to_odom"
+          args="0 0 0 0 0 0 1 map odom 100" />
     <node pkg="tf" type="static_transform_publisher" name="baselink_to_robot"
           args="0 0 0 0 0 0 1 base_link robot 100" />
 
