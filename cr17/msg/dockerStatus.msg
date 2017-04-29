@@ -1,0 +1,2 @@
+bool dockerActive
+bool dockingComplete

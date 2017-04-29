@@ -12,6 +12,7 @@ topics:
     filtered_pose: filtered_pose
     kinect_beacon_points: kinect_beacon_points
     aruco_pose: "/ar_multi_board/transform"
+    docker_status: "/docker_status"
 
 
     # op_mode: operation_mode                                 # ROS String msgs, operation mode for robot

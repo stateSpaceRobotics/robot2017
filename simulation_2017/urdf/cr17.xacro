@@ -17,12 +17,15 @@
   <xacro:property name="baselen" value="${oneinch*30.5}" /> <!--The base is referred to here is the peice that the wheels attach to-->
   <xacro:property name="basewidth" value="${oneinch}" />
   <xacro:property name="baseheight" value="${oneinch*2}" />
+  
   <xacro:property name="armbaselength" value="${oneinch*2}" />
   <xacro:property name="armbasewidth" value="${oneinch}" />
   <xacro:property name="armbaseheight" value="${oneinch*19}" />
+  
   <xacro:property name="controlsboxlength" value="${oneinch*14.25}" />
   <xacro:property name="controlsboxwidth" value="${oneinch*18}" />
   <xacro:property name="controlsboxheight" value="${oneinch*14}" />
+
   <xacro:property name="wheeldiam" value="${oneinch*12}" />
   <xacro:property name="wheelwidth" value="${oneinch*3}" />
   <xacro:property name="wheeldrop" value="${oneinch*2}" />
@@ -60,6 +63,11 @@
   <xacro:property name="scoopactmountdown" value="0.02" /> <!--get actual value -->
   <xacro:property name="scoopactmountback" value="0.03" /> <!-- get actual value -->
   <xacro:property name="scoopactmountin" value="${oneinch*8}" /> <!--based on the drawing having the center line of the actuator and inch past the offset, doublecheck-->
+
+  <xacro:property name="fronthorizontalsupportcontrolsboxoffset" value="${oneinch*8.5}" />
+  <xacro:property name="fronthorizontalsupportlength" value="${oneinch*18}" />
+  <xacro:property name="fronthorizontalsupportwidth" value="${oneinch}" />
+  <xacro:property name="fronthorizontalsupportheight" value="${oneinch*2}" />
 
   <xacro:property name="lidarmountheight" value="0.1" /> <!--get an actual value-->
   <xacro:property name="hokuyolength" value="0.04" /><!--get an actual value-->
@@ -621,6 +629,20 @@
 
   <xacro:kinect prefix="rear" parentlink="rear_kinect_mount"/>
 
+  <link name="front_horizontal_support">
+    <visual>
+      <geometry>
+        <box size="${fronthorizontalsupportwidth} ${fronthorizontalsupportlength} ${fronthorizontalsupportheight}" />
+      </geometry>
+      <material name="green"/>
+    </visual>
+  </link>
+  <joint name="to_front_horizontal_support" type="fixed">
+    <parent link="base_link"/>
+    <child link="front_horizontal_support"/>
+    <origin xyz="${fronthorizontalsupportcontrolsboxoffset+controlsboxlength/2} 0 -${controlsboxheight/2+fronthorizontalsupportheight/2}" />
+  </joint>
+
   <link name="front_kinect_mount">
     <visual>
       <geometry>
@@ -630,9 +652,13 @@
     </visual>
   </link>
   <joint name="to_front_kinect_mount" type="fixed">
-    <parent link="base_link" />
+    <!-- We need to move the front kinect, this is so we can switch between the original position and the proposed new location for tests-->
+    <!--<parent link="base_link" /> 
+    <origin xyz="${controlsboxlength/2} 0 ${controlsboxheight/2+oneinch/2}" rpy="0 0 0"/>-->
+    <parent link="front_horizontal_support" />
+    <origin xyz="0 0 ${fronthorizontalsupportheight/2+oneinch/2}" rpy="0 0 0"/>
+    
     <child link="front_kinect_mount"/>
-    <origin xyz="${controlsboxlength/2} 0 ${controlsboxheight/2+oneinch/2}" rpy="0 0 0"/>
   </joint>
 
   <xacro:kinect prefix="front" parentlink="front_kinect_mount"/>

@@ -45,10 +45,12 @@
   <build_depend>std_msgs</build_depend>
   <build_depend>joy</build_depend>
   <build_depend>tf</build_depend>
+  <build_depend>move_base</build_depend>
   <run_depend>roscpp</run_depend>
   <run_depend>rospy</run_depend>
   <run_depend>std_msgs</run_depend>
   <run_depend>joy</run_depend>
+  <run_depend>move_base</run_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->
