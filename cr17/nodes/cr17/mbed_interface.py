@@ -97,6 +97,7 @@ LSB_AND             = 0b0000000011111
 DRIVE_TOPIC = "/cmd_vel"
 SCOOP_TOPIC = "/cmd_scoop"
 WHEEL_SPEED_TOPIC = "/wheel_speed"
+#SCOOP_OUT = "scoop_out" topic to eventually send scoop values over
 
 ######################################
 # Needed Functions
@@ -246,8 +247,8 @@ class MbedInterface(object):
     #Add new scoop cmd to USB message(arm velocity/scoop velocity)
     def cmd_scoop_callback(self, scoop_msg):
         #print "Received scoopControl from ", SCOOP_TOPIC
-        self.__data[2], self.__data[3] = float_to_fixed_2(scoop_msg.armVelAngular)
-        self.__data[4], self.__data[5] = float_to_fixed_2(scoop_msg.scoopVelAngular)
+        self.__data[2], self.__data[3] = float_to_fixed_2(scoop_msg.armAngular)
+        self.__data[4], self.__data[5] = float_to_fixed_2(scoop_msg.scoopAngular)
 
     #Sends data recieved from Mbed over a topic(wheelData)
     def mbed_recieve_handler(self, data):
@@ -259,6 +260,9 @@ class MbedInterface(object):
         self.__wheel_data.frontRightVel = fixed_to_float(data[1])
         self.__wheel_data.backLeftVel   = fixed_to_float(data[2])
         self.__wheel_data.backRightVel  = fixed_to_float(data[3])
+
+        print self.__wheel_data.frontRightVel
+        print self.__wheel_data.frontLeftVel
 
         #publishes wheelData message to topic
         self.wheel_speed_pub.publish(self.__wheel_data)
