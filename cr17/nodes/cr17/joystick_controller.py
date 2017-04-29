@@ -4,6 +4,8 @@ from geometry_msgs.msg import Twist
 from sensor_msgs.msg import Joy
 from std_msgs.msg import Int16, String
 from cr17.srv import autonomousActive
+from cr17.msg import scoopControl
+
 
 '''
 This module is used to convert joystick messages into appropriate affector commands.
@@ -12,10 +14,12 @@ This module is used to convert joystick messages into appropriate affector comma
 ###################################
 # Constants
 CONTROLLER_BUTTONS = {"A": 0, "B":1, "X": 2, "Y": 3, "R1": 5, "L1": 4, "BACK": 6, "START": 7} # TODO: FINISH THIS, USE BELOW
-CONTROLLER_AXES = {"LSTICKV": 1, "LSTICKH": 0}
+CONTROLLER_AXES = {"LSTICKV": 1, "LSTICKH": 0, "RTRIGGER":5, "LTRIGGER":2}
 # TODO: make these ROS parameters
-MAX_MAG = 7
+MAX_MAG = 1
 SLOP_THRESH = 0.15
+ARM_MOVE_MAG = 25
+HAND_MOVE_MAG = 25
 # Axes to use for drive twists
 JOY_LINEAR_AXIS = CONTROLLER_AXES["LSTICKV"]
 JOY_ANGULAR_AXIS = CONTROLLER_AXES["LSTICKH"]
@@ -45,13 +49,16 @@ class Joystick_Controller(object):
         '''
         rospy.init_node("joystick_controller")
 
-        self.joy_received = False  
+        self.joy_received = False
+        self.arm_state = scoopControl()
+        self.arm_state.armAngle = 50
+        self.arm_state.scoopAngle = 50
 
         global DRIVE_SPEED
         try:
             # Constants for drive speeds
-            DRIVE_SPEED = int(rospy.get_param("drive_settings/drive_speed"))
-        except:
+            DRIVE_SPEED = int(rospy.get_param("drive_settings/drive_speed", 1))
+        except: 
             rospy.logerr("Failed to load motor parameters.")  
 
         self.controller_state = Joy()
@@ -66,18 +73,24 @@ class Joystick_Controller(object):
         # Load topic names
         self.joystick_topic       = rospy.get_param("topics/joystick", "joy")
         drive_topic               = rospy.get_param("topics/drive_cmds", "cmd_vel")
+        self.arm_state_topic      = rospy.get_param('topics/scoop_state_cmds', "cmd_scoop")
+        self.arm_state_in         = rospy.get_param("topics/scoop_state_current", "scoop_out")
+
         # Setup publishers
         self.drive_pub = rospy.Publisher(drive_topic, Twist, queue_size = 10)
+        self.scoop_pub = rospy.Publisher(self.arm_state_topic, scoopControl, queue_size=10)
+
         # Setup subscribers
         rospy.Subscriber(self.joystick_topic, Joy, self.joy_callback)
+        rospy.Subscriber(self.arm_state_in, scoopControl, self.arm_callback)
 
     def start_teleop(self):
         self.teleopEnabled = True
-        try:
-            autonomousScoopService = rospy.ServiceProxy("/autonomousScoop", autonomousActive)
-            autonomousScoopService(False)
-        except rospy.ServiceException, e:
-            rospy.logerr("/autonomousScoop service call failed: %s",e)
+        # try:
+        #     autonomousScoopService = rospy.ServiceProxy("/autonomousScoop", autonomousActive)
+        #     autonomousScoopService(False)
+        # except rospy.ServiceException, e:
+        #     rospy.logerr("/autonomousScoop service call failed: %s",e)
 
         try:
             autonomousNavigatorService = rospy.ServiceProxy("/autonomousNavigator", autonomousActive)
@@ -125,6 +138,11 @@ class Joystick_Controller(object):
                     self.start_teleop()
         self.teleopButton_prev = data.buttons[TELEOP_BUTTON]
 
+    def arm_callback(self, data):
+        self.arm_state = data
+
+    def combineCleanArm(self, armDown, armUp):
+        return (-1*(armUp-1))+(armDown-1)
 
     def run(self):
         '''
@@ -138,6 +156,7 @@ class Joystick_Controller(object):
         while not rospy.is_shutdown():
             # Grab most recent controller state
             current_state = self.controller_state
+            self.joy_received = False
             ######
             # Build Twist message
             ######
@@ -174,7 +193,27 @@ class Joystick_Controller(object):
             if self.teleopEnabled:
                 self.drive_pub.publish(twister)
 
-            self.joy_received = False
+            arm_up = current_state.axes[ARM_UP_AXIS]
+            arm_down = current_state.axes[ARM_DOWN_AXIS]
+
+            hand_up = current_state.buttons[HAND_UP_BUTTON]
+            hand_down = current_state.buttons[HAND_DOWN_BUTTON]
+
+            arm_change = self.combineCleanArm(arm_down, arm_up)
+            hand_change = hand_up - hand_down
+
+            try:
+                arm_change = arm_change/abs(arm_change) #this is temporary and just for the video
+            except Exception:
+                arm_change = 0
+
+            desired_scoop_state = scoopControl()
+
+            desired_scoop_state.armAngle = self.arm_state.armAngle + (ARM_MOVE_MAG*arm_change)
+            desired_scoop_state.scoopAngle = self.arm_state.scoopAngle + (HAND_MOVE_MAG*hand_change)
+
+            self.scoop_pub.publish(desired_scoop_state)
+
             rate.sleep()
 
 if __name__ == "__main__":
