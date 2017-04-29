@@ -260,15 +260,15 @@ class MbedInterface(object):
         self.__wheel_data.backLeftVel   = fixed_to_float(data[2])
         self.__wheel_data.backRightVel  = fixed_to_float(data[3])
 
-        print self.__wheel_data.frontRightVel
-        print self.__wheel_data.frontLeftVel
+        #print self.__wheel_data.frontRightVel
+        #print self.__wheel_data.frontLeftVel
 
         #publishes wheelData message to topic
         self.wheel_speed_pub.publish(self.__wheel_data)
 
 		#TODO: Send Values Scoop Position Value to TF Tree
-        print fixed_to_float_2(data[4], data[5])
-        print fixed_to_float_2(data[6], data[7])
+        #print fixed_to_float_2(data[4], data[5])
+        #print fixed_to_float_2(data[6], data[7])
 
 
     def run(self):
