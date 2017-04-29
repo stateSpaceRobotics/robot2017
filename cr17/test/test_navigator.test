@@ -1,3 +1,4 @@
 <launch>
+   <rosparam command="load" file="$(find cr17)/param/topics.yaml"/>
    <test test-name="test_navigator" pkg="cr17" type="test_navigator.py" />
 </launch>
