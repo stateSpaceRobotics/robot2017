@@ -1,0 +1,7 @@
+<launch>
+
+    <node name="mbed_interface" pkg="cr17" type="mbed_interface.py" respawn="true" launch-prefix="sudo -E "  />
+		<node name="joy" pkg="joy" type="joy_node" respawn="true" />
+		<node name="joystick_controller" pkg="cr17" type="joystick_controller.py" respawn="true"  />
+
+</launch>
