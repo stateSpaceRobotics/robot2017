@@ -14,7 +14,7 @@ This module is used to convert joystick messages into appropriate affector comma
 ###################################
 # Constants
 CONTROLLER_BUTTONS = {"A": 0, "B":1, "X": 2, "Y": 3, "R1": 5, "L1": 4, "BACK": 6, "START": 7} # TODO: FINISH THIS, USE BELOW
-CONTROLLER_AXES = {"LSTICKV": 1, "LSTICKH": 0, "RTRIGGER":4, "LTRIGGER":5} #TODO: make correct, might be 2 and 5
+CONTROLLER_AXES = {"LSTICKV": 1, "LSTICKH": 0, "RTRIGGER":5, "LTRIGGER":2}
 # TODO: make these ROS parameters
 MAX_MAG = 1
 SLOP_THRESH = 0.15
