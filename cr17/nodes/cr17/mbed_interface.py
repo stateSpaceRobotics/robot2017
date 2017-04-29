@@ -247,8 +247,8 @@ class MbedInterface(object):
     #Add new scoop cmd to USB message(arm velocity/scoop velocity)
     def cmd_scoop_callback(self, scoop_msg):
         #print "Received scoopControl from ", SCOOP_TOPIC
-        self.__data[2], self.__data[3] = float_to_fixed_2(scoop_msg.armAngular)
-        self.__data[4], self.__data[5] = float_to_fixed_2(scoop_msg.scoopAngular)
+        self.__data[2], self.__data[3] = float_to_fixed_2(scoop_msg.armAngle)
+        self.__data[4], self.__data[5] = float_to_fixed_2(scoop_msg.scoopAngle)
 
     #Sends data recieved from Mbed over a topic(wheelData)
     def mbed_recieve_handler(self, data):
