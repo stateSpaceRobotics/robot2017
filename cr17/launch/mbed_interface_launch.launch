@@ -1,5 +1,5 @@
 <launch>
 
-<node name="mbed_interface" pkg="cr17" type="mbed_interface.py" respawn="true" launch-prefix="sudo -E "  />
+<node name="mbed_interface" pkg="cr17" type="mbed_interface.py" respawn="true" launch-prefix="sudo -E PYTHONPATH=$(optenv PYTHONPATH) "  />
 
 </launch>
