@@ -1,12 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <launch>
 
-    <node pkg="turtle_teleop" type="turtle_teleop_joy" name="teleop">
-        <param name="left_trigger" value="4" type="int"/>
-        <param name="right_trigger" value="5" type="int"/>
-        <param name="left_y_stick" value="1" type="int"/>
-        <param name="right_y_stick" value="3" type="int"/>
-    </node>
+   <include file="$(find cr17)/launch/mbed_interface_launch.launch" />
 
     <node pkg="cr17" type="joy_repub.py" name="joy_repub" />
 
