@@ -198,6 +198,8 @@ class MbedInterface(object):
         self.__data = [0x0] * DATA_ARRAY_SIZE  #Initializes bytes to be set to zero
         self.__bytes = None
 
+        self.arm_state_out = rospy.get_param("topics/scoop_state_current", "scoop_out")
+
         ######################################
         # Setup ROS Subscribers for this node
         ######################################
@@ -209,6 +211,7 @@ class MbedInterface(object):
         # Setup ROS Publishers for this node
         ######################################
         self.wheel_speed_pub = rospy.Publisher(WHEEL_SPEED_TOPIC, wheelData, queue_size = 10)
+        self.scoop_pub = rospy.Publisher(self.arm_state_out, scoopControl, queue_size=10)
 
         #This sets up the code for the USB. I'm not 100% what it all does, but it works and is entirely based off the example.
         # Find device
@@ -269,6 +272,13 @@ class MbedInterface(object):
 		#TODO: Send Values Scoop Position Value to TF Tree
         #print fixed_to_float_2(data[4], data[5])
         #print fixed_to_float_2(data[6], data[7])
+        
+        scoop_msg = scoopControl()
+        scoop_msg.scoopAngle = fixed_to_float_2(data[4], data[5])
+        scoop_msg.armAngle = fixed_to_float_2(data[6], data[7])
+
+        self.scoop_pub.publish(scoop_msg)
+
 
 
     def run(self):
