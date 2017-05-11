@@ -4,5 +4,6 @@
    <include file="$(find cr17)/launch/mbed_interface_launch.launch" />
 
     <node pkg="cr17" type="joy_repub.py" name="joy_repub" />
+    <node pkg="cr17" type="joystick_controller.py" name="joystick_controller" />
 
 </launch>
