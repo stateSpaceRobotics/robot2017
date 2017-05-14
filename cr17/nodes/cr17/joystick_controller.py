@@ -21,8 +21,8 @@ SLOP_THRESH = 0.15
 ARM_MOVE_MAG = 10
 HAND_MOVE_MAG = 12
 # Axes to use for drive twists
-JOY_LINEAR_AXIS = CONTROLLER_AXES["LSTICKV"]
-JOY_ANGULAR_AXIS = CONTROLLER_AXES["LSTICKH"]
+JOY_LINEAR_AXIS = rospy.get_param("joy/linear", CONTROLLER_AXES["LSTICKV"])
+JOY_ANGULAR_AXIS = rospy.get_param("joy/angular", CONTROLLER_AXES["LSTICKH"])
 
 ARM_DOWN_AXIS = rospy.get_param("joy/arm_down", 2)
 ARM_UP_AXIS = rospy.get_param("joy/arm_up", 5)
