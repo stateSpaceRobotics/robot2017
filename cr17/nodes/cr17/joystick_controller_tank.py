@@ -167,23 +167,10 @@ class Joystick_Controller(object):
             lin_val = current_state.axes[JOY_LINEAR_AXIS]
             ang_val = current_state.axes[JOY_ANGULAR_AXIS]
 
-            mag = math.sqrt(lin_val**2 + ang_val**2)
-            if (lin_val <= SLOP_THRESH) and (lin_val >= -SLOP_THRESH):
-                # Within 0 point slop
-                lin_vel = 0
-            else:
-                lin_vel = lin_val * MAX_MAG#(lin_val / mag) * MAX_MAG
-
-            if (ang_val <= SLOP_THRESH) and (ang_val >= -SLOP_THRESH):
-                # Within 0 point slop
-                ang_vel = 0
-            else:   
-                ang_vel = ang_val * MAX_MAG #(ang_val / mag) * MAX_MAG
-
             lin_history.pop(0)
             vel_history.pop(0)
-            lin_history.append(lin_vel)
-            vel_history.append(ang_vel)
+            lin_history.append(lin_val)
+            vel_history.append(ang_val)
 
             lin_hist_avg = sum(lin_history) / len(lin_history)
             vel_hist_avg = sum(vel_history) / len(vel_history)

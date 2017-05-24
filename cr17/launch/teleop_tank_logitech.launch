@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<launch>
+    <rosparam command="load" file="$(find cr17)/param/logitech_tank.yaml" />
+    <include file="$(find cr17)/launch/mbed_interface_launch.launch" />
+
+    <node pkg="cr17" type="joy_repub.py" name="joy_repub" />
+    <node pkg="cr17" type="joystick_controller_tank.py" name="joystick_controller_tank" />
+</launch>

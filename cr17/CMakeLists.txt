@@ -190,10 +190,15 @@ include_directories(
 # endif()
 
 ## Add folders to be run by python nosetests
-#catkin_add_nosetests(test)
+catkin_add_nosetests(test)
 if(CATKIN_ENABLE_TESTING)
   find_package(rostest REQUIRED)
-  add_rostest(test/test_navigator.test)
+  foreach(T
+          test/test_navigator.test
+          test/test_mbed_interface.test
+         )
+  add_rostest(${T})
+  endforeach()
 endif()
 
 # Build transform inverter

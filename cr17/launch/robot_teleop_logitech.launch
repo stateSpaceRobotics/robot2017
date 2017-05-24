@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<launch>
+    <rosparam command="load" file="$(find cr17)/param/logitech.yaml" />
+    <include file="$(find cr17)/launch/robot_teleop.launch" />
+</launch>

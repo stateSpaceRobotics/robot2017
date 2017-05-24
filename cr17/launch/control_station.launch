@@ -2,4 +2,12 @@
     <rosparam command="load" file="$(find cr17)/param/control_station.yaml" />
     <node name="joystick" pkg="joy" type="joy_node"/>
     <node pkg="cr17" type="control_station.py" output="screen" name="control_station"/>
+
+    <node pkg="cr17" type="usbcam_receiver.py" name="usbcam_receiver"/>
+    
+    <node name="image_view" pkg="image_view" type="image_view" respawn="false" output="screen">
+        <remap from="image" to="/usb_cam/image_raw"/>
+        <param name="autosize" value="true" />
+    </node>
+
 </launch>
